@@ -1,6 +1,7 @@
 #pragma once
 
 #include "hmui/widgets/InternalDrawable.h"
+#include <stdexcept>
 
 class Drawable : public InternalDrawable {
 public:

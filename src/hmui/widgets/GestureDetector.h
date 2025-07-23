@@ -2,6 +2,7 @@
 
 #include <memory>
 #include <functional>
+#include <stdexcept>
 #include "Drawable.h"
 
 typedef std::function<void(std::shared_ptr<InternalDrawable>&, float, float)> GestureDetectorFunction;
