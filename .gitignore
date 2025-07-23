@@ -1,0 +1,7 @@
+build*/
+.cache/
+imgui.ini
+.vscode
+*.DS_Store
+cmake-build-*/
+.idea/
