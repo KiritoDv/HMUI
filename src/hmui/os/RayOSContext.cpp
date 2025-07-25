@@ -21,7 +21,7 @@ void RayOSContext::setMousePosition(Coord& pos) {
 
 Coord RayOSContext::getMouseWheel() {
     auto wheel = GetMouseWheelMoveV();
-    return Coord(static_cast<float>(wheel.x), static_cast<float>(wheel.y));
+    return Coord(wheel.x * 4.0f, wheel.y * 4.0f);
 }
 
 bool RayOSContext::isMouseButtonPressed(int button) {

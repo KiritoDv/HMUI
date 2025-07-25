@@ -52,12 +52,16 @@ public:
     }
 
     void onDraw(GraphicsContext* ctx, float x, float y) override {
-        if (properties.clipToBounds) {
-            ctx->setScissor(bounds);
-        }
+        Rect real = Rect(x + properties.padding.left, y + properties.padding.top,
+                         bounds.width - properties.padding.left - properties.padding.right,
+                         bounds.height - properties.padding.top - properties.padding.bottom);
 
         if(properties.color.a > 0.0f){
             ctx->fillRect(Rect(x, y, bounds.width, bounds.height), properties.color);
+        }
+    
+        if (properties.clipToBounds) {
+            ctx->setScissor(real);
         }
 
         if (properties.child) {

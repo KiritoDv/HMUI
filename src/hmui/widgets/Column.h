@@ -80,6 +80,11 @@ public:
                     yPos += (bounds.height - child->getBounds().height) / (children.size() + 1);
                     break;
             }
+
+            // TODO: Fix this to handle dynamic size properly
+            // Update bounds size
+            bounds.width = std::max(bounds.width, xPos + child->getBounds().width);
+            bounds.height = std::max(bounds.height, yPos + child->getBounds().height);
         }
     }
 

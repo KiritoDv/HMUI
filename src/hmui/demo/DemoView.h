@@ -6,6 +6,7 @@
 #include "hmui/widgets/Column.h"
 #include "hmui/widgets/Container.h"
 #include "hmui/widgets/GestureDetector.h"
+#include "hmui/widgets/Scrollable.h"
 #include "hmui/widgets/Drawable.h"
 
 std::shared_ptr<D_Container> nestedTest(std::vector<Color2D> entries, size_t index = 0) {
@@ -39,14 +40,24 @@ std::shared_ptr<D_Container> nestedTest(std::vector<Color2D> entries, size_t ind
 
 class TestView : public Drawable {
 public:
-    std::vector<Color2D> entries;
+    // std::vector<Color2D> entries;
+    std::vector<std::shared_ptr<InternalDrawable>> entries;
 
     void init() override {
         for(int i = 0; i < 30; ++i) {
-            entries.push_back(Color2D(
-                rand() % 256 / 255.0f,
-                rand() % 256 / 255.0f,
-                rand() % 256 / 255.0f
+            // entries.push_back(Color2D(
+            //     rand() % 256 / 255.0f,
+            //     rand() % 256 / 255.0f,
+            //     rand() % 256 / 255.0f
+            // ));
+            entries.push_back(Container(
+                .color = Color2D(
+                    rand() % 256 / 255.0f,
+                    rand() % 256 / 255.0f,
+                    rand() % 256 / 255.0f
+                ),
+                .width = 200.0f,
+                .height = 100.0f
             ));
         }
         Drawable::init();
@@ -54,11 +65,27 @@ public:
 
     std::shared_ptr<InternalDrawable> build() override {
         // Example of building a simple UI with a column and a container
+        // return Container(
+        //     .alignment = Alignment::Center,
+        //     .child = Container(
+        //         .alignment = Alignment::BottomRight,
+        //         .child = nestedTest(entries)
+        //     )
+        // );
+
         return Container(
-            .alignment = Alignment::Center,
             .child = Container(
-                .alignment = Alignment::BottomRight,
-                .child = nestedTest(entries)
+                .width = 200.0f,
+                .height = 300.0f,
+                .padding = EdgeInsets::all(5.0f),
+                .clipToBounds = true,
+                .color = Color2D(0.0f, 0.0f, 0.0f, 0.3f),
+                .child = Scrollable(
+                    .direction = Direction::Vertical,
+                    .child = Column(
+                        .children = entries
+                    )
+                )
             )
         );
     }

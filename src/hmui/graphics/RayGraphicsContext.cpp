@@ -79,7 +79,7 @@ void RayGraphicsContext::drawImageEx(const Rect& rect, const Rect& srcRect, cons
 }
 
 void RayGraphicsContext::setScissor(const Rect& rect) {
-    BeginScissorMode(rect.x, rect.y, rect.width, rect.height);
+    BeginScissorMode((int) rect.x, (int) rect.y, (int) rect.width, (int) rect.height);
 }
 
 void RayGraphicsContext::clearScissor() {
