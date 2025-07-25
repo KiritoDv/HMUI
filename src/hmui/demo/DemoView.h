@@ -17,7 +17,23 @@ std::shared_ptr<D_Container> nestedTest(std::vector<Color2D> entries, size_t ind
         .padding = EdgeInsets::all(10.0f),
         .alignment = Alignment::Center,
         .color = entries[index],
-        .child = nestedTest(entries, index + 1)
+        .child = GestureDetector(
+            .onHover = [](std::shared_ptr<InternalDrawable>& child, float x, float y) {
+                // Handle tap event
+                std::shared_ptr<D_Container> c = std::dynamic_pointer_cast<D_Container>(child);
+                c->properties.color = Color2D(
+                    rand() % 256 / 255.0f,
+                    rand() % 256 / 255.0f,
+                    rand() % 256 / 255.0f
+                );
+                std::cout << "Tapped on child at (" << x << ", " << y << ")\n";
+            },
+            .onTap = [](std::shared_ptr<InternalDrawable>& child, float x, float y) {
+                // Handle hover event
+                std::cout << "Hovered over child at (" << x << ", " << y << ")\n";
+            },
+            .child = nestedTest(entries, index + 1),
+        )
     );
 }
 
@@ -40,25 +56,9 @@ public:
         // Example of building a simple UI with a column and a container
         return Container(
             .alignment = Alignment::Center,
-            .child = GestureDetector(
-                .onTap = [](std::shared_ptr<InternalDrawable>& child, float x, float y) {
-                    // Handle tap event
-                    std::shared_ptr<D_Container> c = std::dynamic_pointer_cast<D_Container>(child);
-                    c->properties.color = Color2D(
-                        rand() % 256 / 255.0f,
-                        rand() % 256 / 255.0f,
-                        rand() % 256 / 255.0f
-                    );
-                    std::cout << "Tapped on child at (" << x << ", " << y << ")\n";
-                },
-                .onHover = [](std::shared_ptr<InternalDrawable>& child, float x, float y) {
-                    // Handle hover event
-                    std::cout << "Hovered over child at (" << x << ", " << y << ")\n";
-                },
-                .child = Container(
-                    .alignment = Alignment::Center,
-                    .child = nestedTest(entries)
-                )
+            .child = Container(
+                .alignment = Alignment::BottomRight,
+                .child = nestedTest(entries)
             )
         );
     }

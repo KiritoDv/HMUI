@@ -1,5 +1,6 @@
 #pragma once
 
+#include <vector>
 #include <memory>
 #include "hmui/graphics/GraphicsContext.h"
 #include "hmui/os/OSContext.h"
@@ -27,4 +28,7 @@ private:
     std::shared_ptr<InternalDrawable> drawable;
     std::shared_ptr<GraphicsContext> context;
     std::shared_ptr<OSContext> osContext;
+
+    // Implement this later to avoid hitting multiple widgets when using GestureDetector
+    std::vector<std::shared_ptr<InternalDrawable>> searchTree;
 };

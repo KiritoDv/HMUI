@@ -43,6 +43,39 @@ public:
         self->onUpdate(delta);
     }
 
+    void setBounds(const Rect& rect) override {
+        if (self == nullptr) {
+            throw std::runtime_error("Drawable has not been initialized, forgot to call super.init()?");
+        }
+
+        self->setBounds(rect);
+        InternalDrawable::setBounds(rect);
+    }
+
+    Rect getBounds() const override {
+        if (self == nullptr) {
+            throw std::runtime_error("Drawable has not been initialized, forgot to call super.init()?");
+        }
+
+        return self->getBounds();
+    }
+
+    std::shared_ptr<InternalDrawable> getParent() const override {
+        if (self == nullptr) {
+            throw std::runtime_error("Drawable has not been initialized, forgot to call super.init()?");
+        }
+
+        return self->getParent();
+    }
+
+    void setParent(const std::shared_ptr<InternalDrawable>& _parent) override {
+        if (self == nullptr) {
+            throw std::runtime_error("Drawable has not been initialized, forgot to call super.init()?");
+        }
+
+        self->setParent(_parent);
+    }
+
 protected:
     std::shared_ptr<InternalDrawable> self;
 };

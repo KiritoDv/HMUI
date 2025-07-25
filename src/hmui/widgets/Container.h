@@ -35,8 +35,8 @@ public:
 
     void init() override {
         if (properties.child) {
-            properties.child->setParent(shared_from_this());
             properties.child->init();
+            properties.child->setParent(shared_from_this());
             bounds.width = properties.width > 0 ? properties.width : properties.child->getBounds().width + properties.padding.left + properties.padding.right;
             bounds.height = properties.height > 0 ? properties.height : properties.child->getBounds().height + properties.padding.top + properties.padding.bottom;
         } else {
@@ -98,8 +98,8 @@ public:
                     break;
             }
 
-            properties.child->onDraw(ctx, childX, childY);
             properties.child->setBounds(Rect(childX, childY, childBounds.width, childBounds.height));
+            properties.child->onDraw(ctx, childX, childY);
         }
 
         if (properties.clipToBounds) {

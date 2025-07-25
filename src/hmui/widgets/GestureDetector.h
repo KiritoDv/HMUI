@@ -51,6 +51,15 @@ public:
         }
     }
 
+    Rect getBounds() const override {
+        return properties.child->getBounds();
+    }
+
+    void setBounds(const Rect& rect) override{
+        properties.child->setBounds(rect);
+        Drawable::setBounds(rect);
+    }
+
 protected:
     GestureDetectorProperties properties;
 };
