@@ -1,6 +1,7 @@
 #include "HMUI.h"
 
 #include <utility>
+#include <stdexcept>
 
 #include "widgets/InternalDrawable.h"
 #include "graphics/GraphicsContext.h"
