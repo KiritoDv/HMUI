@@ -31,13 +31,7 @@ class D_Column : public InternalDrawable {
 public:
     explicit D_Column(
         const ColumnProperties& properties
-    ) : children(properties.children), mainAxisAlignment(properties.mainAxisAlignment), crossAxisAlignment(properties.crossAxisAlignment) {
-        if (properties.children.empty()) {
-            bounds = Rect(0, 0, 0, 0);
-        } else {
-            bounds = Rect(0, 0, properties.children[0]->getBounds().width, 0);
-        }
-    };
+    ) : children(properties.children), mainAxisAlignment(properties.mainAxisAlignment), crossAxisAlignment(properties.crossAxisAlignment) {};
 
     void init() override {
         for (const auto& child : children) {
@@ -45,6 +39,7 @@ public:
             bounds.width = std::max(bounds.width, child->getBounds().width);
             bounds.height += child->getBounds().height;
         }
+        int bp = 0;
     }
 
     void onDraw(GraphicsContext* ctx, float x, float y) override {
@@ -80,11 +75,6 @@ public:
                     yPos += (bounds.height - child->getBounds().height) / (children.size() + 1);
                     break;
             }
-
-            // TODO: Fix this to handle dynamic size properly
-            // Update bounds size
-            bounds.width = std::max(bounds.width, xPos + child->getBounds().width);
-            bounds.height = std::max(bounds.height, yPos + child->getBounds().height);
         }
     }
 
@@ -92,6 +82,10 @@ public:
         for (const auto& child : children) {
             child->onUpdate(delta);
         }
+    }
+
+    Rect getBounds() const override {
+        return this->bounds;
     }
 
 protected:

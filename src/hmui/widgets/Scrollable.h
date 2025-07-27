@@ -24,6 +24,7 @@ public:
         properties.child->init();
         properties.child->setParent(shared_from_this());
         bounds = properties.child->getBounds();
+        int bp = 0;
     }
 
     void dispose() override {
@@ -37,7 +38,8 @@ public:
             properties.child->onDraw(ctx, x - offset, y);
         }
 
-        properties.child->setBounds(Rect(x, y, bounds.width, bounds.height));
+        auto childBounds = properties.child->getBounds();
+        properties.child->setBounds(Rect(x, y, childBounds.width, childBounds.height));
     }
 
     float lerp(float a, float b, float t) {
@@ -52,21 +54,24 @@ public:
         auto mousePos = os->getMousePosition();
 
         // TODO: Fix this because is broken
-        // if(!(bounds.x <= mousePos.x && mousePos.x <= bounds.x + bounds.width &&
-        //     bounds.y <= mousePos.y && mousePos.y <= bounds.y + bounds.height)) {
-        //     return;
-        // }
+         if(!(bounds.x <= mousePos.x && mousePos.x <= bounds.x + bounds.width &&
+             bounds.y <= mousePos.y && mousePos.y <= bounds.y + bounds.height)) {
+             return;
+         }
 
         if (properties.direction == Direction::Vertical) {
             float wheel = os->getMouseWheel().y;
-            nextOffset += wheel * 2;
+            nextOffset -= wheel * 2;
         } else {
             float wheel = os->getMouseWheel().x;
-            nextOffset += wheel * 2;
+            nextOffset -= wheel * 2;
         }
 
-        offset = lerp(offset, nextOffset, 0.1f);
         // TODO: We need to clamp the offset to prevent scrolling out of bounds
+        // TODO: I kinda fixed it but the clamp is still wrong
+        nextOffset = std::max(0.0f, nextOffset);
+        nextOffset = std::min(nextOffset, bounds.height);
+        offset = lerp(offset, nextOffset, 0.1f);
     }
 
     Rect getBounds() const override {
