@@ -1,14 +1,8 @@
 #pragma once
-#define RAYLIB_IMPLEMENTATION
 
 #include "GraphicsContext.h"
-#include <raylib.h>
 
-namespace RGGuiGC {
-Texture2D loadTexture(const char* texturePath);
-}
-
-class RayGraphicsContext : public GraphicsContext {
+class ImGuiGraphicsContext : public GraphicsContext {
 public:
     void init() override;
     void dispose() override;
@@ -22,5 +16,5 @@ public:
     void clearScissor() override;
 
     void build(GfxList** out) override;
-    ~RayGraphicsContext() = default;
+    ~ImGuiGraphicsContext() = default;
 };

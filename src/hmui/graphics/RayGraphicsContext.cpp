@@ -3,6 +3,7 @@
 #include <string>
 #include "raylib.h"
 
+namespace RGGuiGC {
 std::unordered_map<std::string, Texture2D> textureCache;
 
 Texture2D loadTexture(const char* texturePath) {
@@ -14,6 +15,7 @@ Texture2D loadTexture(const char* texturePath) {
     Texture2D texture = LoadTexture(texturePath);
     textureCache[texturePath] = texture;
     return texture;
+}
 }
 
 void RayGraphicsContext::init() {
@@ -56,7 +58,7 @@ void RayGraphicsContext::drawText(float x, float y, const char* text, const Colo
 }
 
 void RayGraphicsContext::drawImage(const Rect& rect, const char* texture, const Color2D& color, float scale) {
-    Texture2D tex = loadTexture(texture);
+    Texture2D tex = RGGuiGC::loadTexture(texture);
     Rectangle destRect = { rect.x, rect.y, rect.width * scale, rect.height * scale };
     DrawTexturePro(tex, Rectangle{0, 0, (float)tex.width, (float)tex.height}, destRect, Vector2{0, 0}, 0.0f, Color {
         (uint8_t)(color.r * 255),
@@ -67,7 +69,7 @@ void RayGraphicsContext::drawImage(const Rect& rect, const char* texture, const 
 }
 
 void RayGraphicsContext::drawImageEx(const Rect& rect, const Rect& srcRect, const char* texture, const Color2D& color) {
-    Texture2D tex = loadTexture(texture);
+    Texture2D tex = RGGuiGC::loadTexture(texture);
     Rectangle destRect = { rect.x, rect.y, rect.width, rect.height };
     Rectangle sourceRect = { srcRect.x, srcRect.y, srcRect.width, srcRect.height };
     DrawTexturePro(tex, sourceRect, destRect, Vector2{0, 0}, 0.0f, Color {
