@@ -14,6 +14,8 @@ public:
     bool isMouseButtonReleased(int button) override;
     bool isMouseButtonDown(int button) override;
     void setMouseCursor(int cursor) override;
+    bool isTouchDevice() override;
+    bool isTouchActive() override;
     void setClipboardText(const char* text) override;
     const char* getClipboardText() override;
     void showCursor(bool show) override;

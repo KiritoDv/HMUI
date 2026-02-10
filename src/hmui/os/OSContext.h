@@ -32,6 +32,8 @@ public:
     virtual bool isMouseButtonReleased(int button) = 0;
     virtual bool isMouseButtonDown(int button) = 0;
     virtual void setMouseCursor(int cursor) = 0;
+    virtual bool isTouchDevice() = 0;
+    virtual bool isTouchActive() = 0;
     virtual void setClipboardText(const char* text) = 0;
     virtual const char* getClipboardText() = 0;
     virtual void showCursor(bool show) = 0;

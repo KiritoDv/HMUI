@@ -40,6 +40,16 @@ void RayOSContext::setMouseCursor(int cursor) {
     SetMouseCursor(cursor);
 }
 
+bool RayOSContext::isTouchDevice() {
+    // Not implemented
+    return false;
+}
+
+bool RayOSContext::isTouchActive() {
+    // Not implemented
+    return false;
+}
+
 void RayOSContext::setClipboardText(const char* text) {
     SetClipboardText(text);
 }

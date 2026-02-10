@@ -7,7 +7,7 @@
 typedef Fast::F3DGfx GfxList;
 #else
 typedef struct GfxList {
-    // Placeholder for non-N64 platforms
+    void* head;
 } GfxList;
 #endif
 
@@ -49,5 +49,5 @@ public:
     virtual void setScissor(const Rect& rect) = 0;
     virtual void clearScissor() = 0;
 
-    virtual void build(GfxList** out) = 0;
+    virtual void build(GfxList* out) = 0;
 };

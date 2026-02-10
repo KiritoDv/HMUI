@@ -2,8 +2,8 @@
 
 #include <vector>
 #include <memory>
-#include "hmui/graphics/GraphicsContext.h"
-#include "hmui/os/OSContext.h"
+#include "graphics/GraphicsContext.h"
+#include "os/OSContext.h"
 
 class InternalDrawable;
 
@@ -18,7 +18,7 @@ public:
     [[nodiscard]] bool isActive() const {
         return drawable != nullptr;
     }
-    void draw(GfxList** out, int width, int height);
+    void draw(GfxList* out, int width, int height);
     void update(float delta);
 
     std::shared_ptr<OSContext> getOSContext() {

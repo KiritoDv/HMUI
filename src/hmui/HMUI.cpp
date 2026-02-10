@@ -34,19 +34,19 @@ void HMUI::show(const std::shared_ptr<InternalDrawable>& _drawable) {
     }
 }
 
-void HMUI::draw(GfxList** out, int width, int height) {
+void HMUI::draw(GfxList* out, int width, int height) {
     if(this->drawable == nullptr) {
-        throw std::runtime_error("InternalDrawable cannot be null");
+        return;
     }
 
+    this->context->build(out);
     this->drawable->setBounds(Rect(0, 0, (float) width, (float) height));
     this->drawable->onDraw(context.get(), 0, 0);
-    this->context->build(out);
 }
 
 void HMUI::update(float delta){
     if(this->drawable == nullptr) {
-        throw std::runtime_error("InternalDrawable cannot be null");
+        return;
     }
 
     this->drawable->onUpdate(delta);
@@ -54,7 +54,7 @@ void HMUI::update(float delta){
 
 void HMUI::close(){
     if(this->drawable == nullptr) {
-        throw std::runtime_error("InternalDrawable cannot be null");
+        return;
     }
 
     this->drawable->dispose();

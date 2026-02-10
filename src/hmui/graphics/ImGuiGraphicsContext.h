@@ -15,6 +15,6 @@ public:
     void setScissor(const Rect& rect) override;
     void clearScissor() override;
 
-    void build(GfxList** out) override;
+    void build(GfxList* out) override;
     ~ImGuiGraphicsContext() = default;
 };
