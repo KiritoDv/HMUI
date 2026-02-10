@@ -12,12 +12,12 @@ public:
         throw std::runtime_error("build() method must be implemented");
     }
 
-    virtual void init() {
+    virtual void init() override {
         self = this->build();
         self->init();
     }
 
-    virtual void dispose() {
+    virtual void dispose() override {
         if (self == nullptr) {
             throw std::runtime_error("Drawable has not been initialized, forgot to call super.init()?");
         }

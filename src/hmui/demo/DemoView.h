@@ -8,6 +8,7 @@
 #include "hmui/widgets/GestureDetector.h"
 #include "hmui/widgets/Scrollable.h"
 #include "hmui/widgets/Drawable.h"
+#include "hmui/widgets/AppContext.h"
 
 std::shared_ptr<D_Container> nestedTest(std::vector<Color2D> entries, size_t index = 0) {
     if (index >= entries.size()) {
@@ -108,14 +109,14 @@ public:
     ~DemoSubView() override = default;
 };
 
-
-
 class DemoView : public Drawable {
 public:
     std::shared_ptr<InternalDrawable> build() override {
-        // Render TestView
-        return std::make_shared<DemoSubView>(
-            std::make_shared<TestView>()
+        return AppContext(
+            .routes = {
+                { "/", []() { return std::make_shared<TestView>(); }}
+            },
+            .initialRoute = "/"
         );
     }
 
