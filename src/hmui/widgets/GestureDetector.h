@@ -14,6 +14,7 @@ struct GestureDetectorProperties {
     GestureDetectorFunction onHoverEnd = nullptr;
     std::shared_ptr<InternalDrawable> child = nullptr;
 };
+std::weak_ptr<InternalDrawable> gCapturedInput;
 
 class D_GestureDetector : public Drawable {
 public:
@@ -36,17 +37,19 @@ public:
         auto bounds = properties.child->getBounds();
         auto mousePos = os->getMousePosition();
         bool hoveredNow = bounds.contains(mousePos.x, mousePos.y);
+        bool pressed = os->isMouseButtonPressed(0) || os->isTouchActive();
+        bool hasCapture = !gCapturedInput.expired();
 
         // Press detection
-        if (hoveredNow && os->isMouseButtonPressed(0) || os->isTouchActive()) {
-            if (!isPressed) {
-                isPressed = true;
-                if (properties.onTap) properties.onTap(properties.child, mousePos.x, mousePos.y);
-            }
+        if (hoveredNow && pressed && !isPressed) {
+            isPressed = true;
+            gCapturedInput = properties.child;
+            if (properties.onTap) properties.onTap(properties.child, mousePos.x, mousePos.y);
         } else {
             // Release
-            if (isPressed) {
+            if (isPressed && !pressed) {
                 isPressed = false;
+                gCapturedInput.reset();
                 if (properties.onTapRelease) properties.onTapRelease(properties.child, mousePos.x, mousePos.y);
             }
         }
