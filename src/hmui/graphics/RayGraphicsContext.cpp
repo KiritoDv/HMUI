@@ -88,6 +88,6 @@ void RayGraphicsContext::clearScissor() {
     EndScissorMode();
 }
 
-void RayGraphicsContext::build(GfxList** gen) {
+void RayGraphicsContext::build(GfxList* gen) {
     // Not needed for Raylib context
 }

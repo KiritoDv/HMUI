@@ -4,7 +4,6 @@
 
 #define IMGUI_DEFINE_MATH_OPERATORS
 #include <imgui.h>
-#include "Engine.h"
 
 static ImDrawList* draw_list = nullptr;
 
@@ -62,38 +61,38 @@ void ImGuiGraphicsContext::drawText(float x, float y, const char* text, const Co
 }
 
 void ImGuiGraphicsContext::drawImage(const Rect& rect, const char* texture, const Color2D& color, float scale) {
-    auto gui = GameEngine::Instance->context->GetWindow()->GetGui();
-    if(!gui->HasTextureByName(texture)){
-        throw std::runtime_error("Texture not found: " + std::string(texture));
-    }
+    // auto gui = GameEngine::Instance->context->GetWindow()->GetGui();
+    // if(!gui->HasTextureByName(texture)){
+    //     throw std::runtime_error("Texture not found: " + std::string(texture));
+    // }
 
-    auto tex = gui->GetTextureByName(texture);
+    // auto tex = gui->GetTextureByName(texture);
 
-    ImVec2 pos = normalize(rect);
-    ImVec2 size = ImVec2{ rect.width * scale, rect.height * scale };
-    draw_list->AddImage(tex, pos, ImVec2{pos.x + size.x, pos.y + size.y}, ImVec2{0, 0}, ImVec2{1, 1}, ImColor {
-        (uint8_t)(color.r * 255),
-        (uint8_t)(color.g * 255),
-        (uint8_t)(color.b * 255),
-        (uint8_t)(color.a * 255)
-    });
+    // ImVec2 pos = normalize(rect);
+    // ImVec2 size = ImVec2{ rect.width * scale, rect.height * scale };
+    // draw_list->AddImage(tex, pos, ImVec2{pos.x + size.x, pos.y + size.y}, ImVec2{0, 0}, ImVec2{1, 1}, ImColor {
+    //     (uint8_t)(color.r * 255),
+    //     (uint8_t)(color.g * 255),
+    //     (uint8_t)(color.b * 255),
+    //     (uint8_t)(color.a * 255)
+    // });
 }
 
 void ImGuiGraphicsContext::drawImageEx(const Rect& rect, const Rect& srcRect, const char* texture, const Color2D& color) {
-    auto gui = GameEngine::Instance->context->GetWindow()->GetGui();
-    if(!gui->HasTextureByName(texture)){
-        throw std::runtime_error("Texture not found: " + std::string(texture));
-    }
+    // auto gui = GameEngine::Instance->context->GetWindow()->GetGui();
+    // if(!gui->HasTextureByName(texture)){
+    //     throw std::runtime_error("Texture not found: " + std::string(texture));
+    // }
 
-    auto tex = gui->GetTextureByName(texture);
-    ImVec2 pos = normalize(rect);
-    ImVec2 size = ImVec2{ rect.width, rect.height };
-    draw_list->AddImage(tex, pos, ImVec2{pos.x + size.x, pos.y + size.y}, ImVec2{srcRect.x, srcRect.y}, ImVec2{srcRect.x + srcRect.width, srcRect.y + srcRect.height}, ImColor {
-        (uint8_t)(color.r * 255),
-        (uint8_t)(color.g * 255),
-        (uint8_t)(color.b * 255),
-        (uint8_t)(color.a * 255)
-    });
+    // auto tex = gui->GetTextureByName(texture);
+    // ImVec2 pos = normalize(rect);
+    // ImVec2 size = ImVec2{ rect.width, rect.height };
+    // draw_list->AddImage(tex, pos, ImVec2{pos.x + size.x, pos.y + size.y}, ImVec2{srcRect.x, srcRect.y}, ImVec2{srcRect.x + srcRect.width, srcRect.y + srcRect.height}, ImColor {
+    //     (uint8_t)(color.r * 255),
+    //     (uint8_t)(color.g * 255),
+    //     (uint8_t)(color.b * 255),
+    //     (uint8_t)(color.a * 255)
+    // });
 }
 
 void ImGuiGraphicsContext::setScissor(const Rect& rect) {
