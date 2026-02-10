@@ -63,6 +63,20 @@ public:
         push(view);
     }
 
+    void init() override {
+        if (properties.initialRoute.empty()) {
+            throw std::runtime_error("Initial route cannot be empty");
+        }
+
+        auto routeBuilderOpt = getRouteBuilder(properties.initialRoute);
+        if (!routeBuilderOpt.has_value()) {
+            throw std::runtime_error("Initial route not found: " + properties.initialRoute);
+        }
+
+        auto initialView = routeBuilderOpt.value()();
+        push(initialView);
+    }
+
     void onDraw(GraphicsContext* ctx, float x, float y) override {
         if (!stack.empty()) {
             stack.back()->onDraw(ctx, x, y);
