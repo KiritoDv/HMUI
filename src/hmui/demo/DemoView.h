@@ -9,6 +9,8 @@
 #include "hmui/widgets/Scrollable.h"
 #include "hmui/widgets/Drawable.h"
 #include "hmui/widgets/AppContext.h"
+#include "hmui/graphics/providers/RayImageProvider.h"
+#include "hmui/Navigator.h"
 
 std::shared_ptr<D_Container> nestedTest(std::vector<Color2D> entries, size_t index = 0) {
     if (index >= entries.size()) {
@@ -17,7 +19,7 @@ std::shared_ptr<D_Container> nestedTest(std::vector<Color2D> entries, size_t ind
 
     return Container(
         .padding = EdgeInsets::all(10.0f),
-        .alignment = Alignment::Center,
+        .alignment = Alignment::Center(),
         .color = entries[index],
         .child = GestureDetector(
             .onHover = [](std::shared_ptr<InternalDrawable>& child, float x, float y) {
@@ -57,7 +59,10 @@ public:
                     rand() % 256 / 255.0f,
                     rand() % 256 / 255.0f
                 ),
-                .width = 200.0f,
+                .image = {
+                    .provider = TextureProvider("test.png")
+                },
+                .width = 130.0f,
                 .height = 100.0f
             ));
         }
@@ -81,8 +86,10 @@ public:
                 .padding = EdgeInsets::all(5.0f),
                 .clipToBounds = true,
                 .color = Color2D(0.0f, 0.0f, 0.0f, 0.3f),
-                .child = Scrollable(
-                    .direction = Direction::Vertical,
+                .child = GestureDetector(
+                    .onTap = [](std::shared_ptr<InternalDrawable>& child, float x, float y) {
+                        Navigator::push("/alternate");
+                    },
                     .child = Column(
                         .children = entries
                     )
@@ -94,19 +101,60 @@ public:
     ~TestView() override = default;
 };
 
-class DemoSubView : public Drawable {
-protected:
-    std::shared_ptr<InternalDrawable> child;
+class AlternateTestView : public Drawable {
 public:
+    // std::vector<Color2D> entries;
+    std::vector<std::shared_ptr<InternalDrawable>> entries;
 
-    explicit DemoSubView(std::shared_ptr<InternalDrawable> _child): child(std::move(_child)) {}
-
-    std::shared_ptr<InternalDrawable> build() override {
-        // Render TestView
-        return this->child;
+    void init() override {
+        for(int i = 0; i < 30; ++i) {
+            // entries.push_back(Color2D(
+            //     rand() % 256 / 255.0f,
+            //     rand() % 256 / 255.0f,
+            //     rand() % 256 / 255.0f
+            // ));
+            entries.push_back(Container(
+                .color = Color2D(
+                    rand() % 256 / 255.0f,
+                    rand() % 256 / 255.0f,
+                    rand() % 256 / 255.0f
+                ),
+                .width = 100.0f,
+                .height = 200.0f
+            ));
+        }
+        Drawable::init();
     }
 
-    ~DemoSubView() override = default;
+    std::shared_ptr<InternalDrawable> build() override {
+        // Example of building a simple UI with a column and a container
+        // return Container(
+        //     .alignment = Alignment::Center,
+        //     .child = Container(
+        //         .alignment = Alignment::BottomRight,
+        //         .child = nestedTest(entries)
+        //     )
+        // );
+
+        return Container(
+            .color = Color2D(0.0f, 1.0f, 0.0f, 0.5f),
+            .child = Container(
+                .width = 200.0f,
+                .height = 300.0f,
+                .padding = EdgeInsets::all(5.0f),
+                .clipToBounds = true,
+                .color = Color2D(0.0f, 0.0f, 0.0f, 0.3f),
+                .child = Scrollable(
+                    .direction = Direction::Vertical,
+                    .child = Column(
+                        .children = entries
+                    )
+                )
+            )
+        );
+    }
+
+    ~AlternateTestView() override = default;
 };
 
 class DemoView : public Drawable {
@@ -114,7 +162,8 @@ public:
     std::shared_ptr<InternalDrawable> build() override {
         return AppContext(
             .routes = {
-                { "/", []() { return std::make_shared<TestView>(); }}
+                { "/", []() { return std::make_shared<TestView>(); }},
+                { "/alternate", []() { return std::make_shared<AlternateTestView>(); }}
             },
             .initialRoute = "/"
         );

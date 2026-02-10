@@ -11,6 +11,12 @@ typedef struct GfxList {
 } GfxList;
 #endif
 
+struct ImageHandle {
+    int width;
+    int height;
+    void* handle;
+};
+
 struct Color2D {
     float r, g, b, a;
 
@@ -36,6 +42,12 @@ struct Rect {
     }
 };
 
+class ImageProvider {
+public:
+    virtual ImageHandle* load() = 0;
+    virtual void dispose() = 0;
+};
+
 class GraphicsContext {
 public:
     virtual void init() = 0;
@@ -44,8 +56,8 @@ public:
     virtual void drawRect(const Rect& rect, const Color2D& color) = 0;
     virtual void fillRect(const Rect& rect, const Color2D& color) = 0;
     virtual void drawText(float x, float y, const char* text, const Color2D& color) = 0;
-    virtual void drawImage(const Rect& rect, const char* imagePath, const Color2D& color, float scale = 1.0f) = 0;
-    virtual void drawImageEx(const Rect& rect, const Rect& srcRect, const char* imagePath, const Color2D& color) = 0;
+    virtual void drawImage(const Rect& rect, ImageHandle* texture, const Color2D& color, float scale = 1.0f) = 0;
+    virtual void drawImageEx(const Rect& rect, const Rect& srcRect, ImageHandle* texture, const Color2D& color) = 0;
     virtual void setScissor(const Rect& rect) = 0;
     virtual void clearScissor() = 0;
 

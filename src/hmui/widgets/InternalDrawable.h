@@ -24,6 +24,31 @@ struct EdgeInsets {
     }
 };
 
+struct Alignment {
+    float x;
+    float y;
+
+    static const Alignment TopLeft() { return { 0.0f, 0.0f }; }
+    static const Alignment TopCenter() { return { 0.5f, 0.0f }; }
+    static const Alignment TopRight() { return { 1.0f, 0.0f }; }
+    static const Alignment CenterLeft() { return { 0.0f, 0.5f }; }
+    static const Alignment Center() { return { 0.5f, 0.5f }; }
+    static const Alignment CenterRight() { return { 1.0f, 0.5f }; }
+    static const Alignment BottomLeft() { return { 0.0f, 1.0f }; }
+    static const Alignment BottomCenter() { return { 0.5f, 1.0f }; }
+    static const Alignment BottomRight() { return { 1.0f, 1.0f }; }
+};
+
+enum class BoxFit {
+    Fill,       // Stretch to fill the box (distorts aspect ratio)
+    Contain,    // Scale to fit inside (maintains aspect ratio, may leave gaps)
+    Cover,      // Scale to cover the box (maintains aspect ratio, may crop/overflow)
+    FitWidth,   // Scale to match the width
+    FitHeight,  // Scale to match the height
+    None,       // Do not scale (center original size)
+    ScaleDown   // Like None, but scales down if image is too large (like Contain)
+};
+
 class InternalDrawable : public std::enable_shared_from_this<InternalDrawable> {
 public:
     InternalDrawable() : bounds(Rect(0, 0, 0, 0)) {}

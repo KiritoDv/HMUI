@@ -1,19 +1,20 @@
 #pragma once
 
 #include <utility>
+#include <memory>
 
 #include "InternalDrawable.h"
 
-enum class Alignment {
-    TopLeft,
-    TopCenter,
-    TopRight,
-    CenterLeft,
-    Center,
-    CenterRight,
-    BottomLeft,
-    BottomCenter,
-    BottomRight
+struct ImageProperties {
+    std::shared_ptr<ImageProvider> provider = nullptr;
+    Color2D color = Color2D(1.0f, 1.0f, 1.0f, 1.0f);
+
+    float width = 0;
+    float height = 0;
+    float scale = 1.0f;
+
+    BoxFit fit = BoxFit::Contain;
+    Alignment alignment = Alignment::Center();
 };
 
 struct ContainerProperties {
@@ -21,10 +22,12 @@ struct ContainerProperties {
     float height = 0;
     EdgeInsets padding = EdgeInsets();
     EdgeInsets margin = EdgeInsets();
-    Alignment alignment = Alignment::TopLeft;
+    Alignment alignment = Alignment::TopLeft();
     bool clipToBounds = false;
     Color2D color = Color2D(1.0f, 1.0f, 1.0f, 0.0f);
     std::shared_ptr<InternalDrawable> child = nullptr;
+    ImageProperties image = ImageProperties();
+    BoxFit backgroundFit = BoxFit::Fill; 
 };
 
 class D_Container : public InternalDrawable {
@@ -34,6 +37,10 @@ public:
     ) : properties(std::move(properties)) {};
 
     void init() override {
+        if (properties.image.provider) {
+            bgImage = properties.image.provider->load();
+        }
+
         if (properties.child) {
             properties.child->init();
             properties.child->setParent(shared_from_this());
@@ -46,6 +53,9 @@ public:
     }
 
     void dispose() override {
+        if (properties.image.provider) {
+            properties.image.provider->dispose();
+        }
         if (properties.child) {
             properties.child->dispose();
         }
@@ -59,48 +69,22 @@ public:
         if(properties.color.a > 0.0f){
             ctx->fillRect(Rect(x, y, bounds.width, bounds.height), properties.color);
         }
+
+        if (bgImage) {
+            ctx->drawImage(Rect(x, y, bounds.width, bounds.height), bgImage, properties.image.color, properties.image.scale);
+        }
     
         if (properties.clipToBounds) {
             ctx->setScissor(real);
         }
 
         if (properties.child) {
-            float childX = x + properties.padding.left;
-            float childY = y + properties.padding.top;
+            float availableWidth = bounds.width - properties.padding.left - properties.padding.right;
+            float availableHeight = bounds.height - properties.padding.top - properties.padding.bottom;
             Rect childBounds = properties.child->getBounds();
 
-            switch (properties.alignment) {
-                case Alignment::TopLeft:
-                    break;
-                case Alignment::TopCenter:
-                    childX = x + (bounds.width - childBounds.width) / 2;
-                    break;
-                case Alignment::TopRight:
-                    childX = x + bounds.width - childBounds.width - properties.padding.right;
-                    break;
-                case Alignment::CenterLeft:
-                    childY = y + (bounds.height - childBounds.height) / 2;
-                    break;
-                case Alignment::Center:
-                    childX = x + (bounds.width - childBounds.width) / 2;
-                    childY = y + (bounds.height - childBounds.height) / 2;
-                    break;
-                case Alignment::CenterRight:
-                    childX = x + bounds.width - childBounds.width - properties.padding.right;
-                    childY = y + (bounds.height - childBounds.height) / 2;
-                    break;
-                case Alignment::BottomLeft:
-                    childY = y + bounds.height - childBounds.height - properties.padding.bottom;
-                    break;
-                case Alignment::BottomCenter:
-                    childX = x + (bounds.width - childBounds.width) / 2;
-                    childY = y + bounds.height - childBounds.height - properties.padding.bottom;
-                    break;
-                case Alignment::BottomRight:
-                    childX = x + bounds.width - childBounds.width - properties.padding.right;
-                    childY = y + bounds.height - childBounds.height - properties.padding.bottom;
-                    break;
-            }
+            float childX = x + properties.padding.left + (availableWidth - childBounds.width) * properties.alignment.x;
+            float childY = y + properties.padding.top + (availableHeight - childBounds.height) * properties.alignment.y;
 
             properties.child->setBounds(Rect(childX, childY, childBounds.width, childBounds.height));
             properties.child->onDraw(ctx, childX, childY);
@@ -130,6 +114,7 @@ public:
     ContainerProperties properties;
 protected:
     Rect bounds;
+    ImageHandle* bgImage = nullptr;
 };
 
 #define Container(...) \
