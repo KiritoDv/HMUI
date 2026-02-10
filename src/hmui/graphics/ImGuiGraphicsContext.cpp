@@ -80,7 +80,6 @@ void ImGuiGraphicsContext::clearScissor() {
 
 Rect ImGuiGraphicsContext::calculateTextBounds(std::string text) {
     ImVec2 size = ImGui::CalcTextSize(text.c_str());
-    printf("Calculated text size for '%s': %f x %f\n", text.c_str(), size.x, size.y);
     return Rect{size.x, size.y, size.x, size.y};
 }
 
