@@ -38,7 +38,7 @@ void RayGraphicsContext::fillRect(const Rect& rect, const Color2D& color) {
     });
 }
 
-void RayGraphicsContext::drawText(float x, float y, const char* text, const Color2D& color) {
+void RayGraphicsContext::drawText(float x, float y, const char* text, float scale, const Color2D& color) {
     // TODO: Implement text system later
 }
 
@@ -71,6 +71,11 @@ void RayGraphicsContext::setScissor(const Rect& rect) {
 
 void RayGraphicsContext::clearScissor() {
     EndScissorMode();
+}
+
+Rect RayGraphicsContext::calculateTextBounds(std::string text) {
+    // TODO: Implement text bounds calculation using Raylib's text measurement functions
+    return Rect{0, 0, 0, 0};
 }
 
 void RayGraphicsContext::build(GfxList* gen) {

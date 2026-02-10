@@ -12,6 +12,7 @@
 #include "hmui/graphics/providers/RayImageProvider.h"
 #include "hmui/widgets/Image.h"
 #include "hmui/widgets/Stack.h"
+#include "hmui/widgets/Text.h"
 #include "hmui/Navigator.h"
 
 std::shared_ptr<D_Container> nestedTest(std::vector<Color2D> entries, size_t index = 0) {
@@ -44,18 +45,6 @@ public:
 
     void init() override {
         for(int i = 0; i < 30; ++i) {
-            // entries.push_back(Container(
-            //     .color = Color2D(
-            //         rand() % 256 / 255.0f,
-            //         rand() % 256 / 255.0f,
-            //         rand() % 256 / 255.0f
-            //     ),
-            //     .image = {
-            //         .provider = TextureProvider("test.png")
-            //     },
-            //     .width = 200.0f,
-            //     .height = 100.0f
-            // ));
             entries.push_back(Container(
                 .width = 0,
                 .height = 100.0f,
@@ -64,9 +53,20 @@ public:
                     rand() % 256 / 255.0f,
                     rand() % 256 / 255.0f
                 ),
-                .child = Image(
-                    .provider = TextureProvider("test.png"),
-                    .fit = BoxFit::Cover
+                .child = Stack(
+                    .children = {
+                        Image(
+                            .provider = TextureProvider("test.png"),
+                            .fit = BoxFit::Contain
+                        ),
+                        Text(
+                            .text = "Hello World",
+                            .scale = 2.0f,
+                            .alignH = HorizontalAlign::Center,
+                            .alignV = VerticalAlign::Center,
+                            .color = Color2D(1.0f, 1.0f, 1.0f, 1.0f)
+                        )
+                    }
                 )
             ));
         }

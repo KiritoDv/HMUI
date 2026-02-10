@@ -21,6 +21,10 @@ public:
     void draw(GfxList* out, int width, int height);
     void update(float delta);
 
+    std::shared_ptr<GraphicsContext> getGraphicsContext() {
+        return this->context;
+    }
+
     std::shared_ptr<OSContext> getOSContext() {
         return this->osContext;
     }

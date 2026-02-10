@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <string>
 
 #ifdef HMUI_N64
 #include <Fast3D/lus_gbi.h>
@@ -55,11 +56,14 @@ public:
     virtual void drawLine(float x1, float y1, float x2, float y2, const Color2D& color) = 0;
     virtual void drawRect(const Rect& rect, const Color2D& color) = 0;
     virtual void fillRect(const Rect& rect, const Color2D& color) = 0;
-    virtual void drawText(float x, float y, const char* text, const Color2D& color) = 0;
+    virtual void drawText(float x, float y, const char* text, float scale, const Color2D& color) = 0;
     virtual void drawImage(const Rect& rect, ImageHandle* texture, const Color2D& color, float scale = 1.0f) = 0;
     virtual void drawImageEx(const Rect& rect, const Rect& srcRect, ImageHandle* texture, const Color2D& color) = 0;
     virtual void setScissor(const Rect& rect) = 0;
     virtual void clearScissor() = 0;
 
     virtual void build(GfxList* out) = 0;
+
+    // Util
+    virtual Rect calculateTextBounds(std::string text) = 0;
 };
