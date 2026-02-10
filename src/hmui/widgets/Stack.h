@@ -1,10 +1,11 @@
 #pragma once
 
+#include "hmui/widgets/InternalDrawable.h"
 #include <vector>
 #include <memory>
 #include <optional>
 #include <algorithm>
-#include "InternalDrawable.h"
+#include <cmath>
 
 // ==========================================
 // 1. The Positioned Wrapper
@@ -25,11 +26,24 @@ public:
     explicit D_Positioned(PositionedProperties props) : properties(std::move(props)) {}
 
     void init() override {
-        if (properties.child) properties.child->init();
+        if (properties.child) {
+            properties.child->init();
+            properties.child->setParent(shared_from_this());
+        }
     }
-    
-    // Positioned widgets don't draw themselves; they just pass calls to the child.
-    // The Stack (parent) handles the actual setBounds logic for this widget.
+
+    // Forward layout call to child
+    void layout(BoxConstraints constraints) override {
+        if (properties.child) {
+            properties.child->layout(constraints);
+            // Adopt child's size so getBounds() works expectedly
+            bounds = properties.child->getBounds(); 
+        } else {
+            bounds.width = constraints.minWidth;
+            bounds.height = constraints.minHeight;
+        }
+    }
+
     void onDraw(GraphicsContext* ctx, float x, float y) override {
         if (properties.child) properties.child->onDraw(ctx, x, y);
     }
@@ -40,15 +54,24 @@ public:
     
     // Pass bounds directly to child
     void setBounds(const Rect& rect) override {
-        InternalDrawable::setBounds(rect);
-        if (properties.child) properties.child->setBounds(rect);
+        bounds = rect;
+        if (properties.child) {
+            // Child is usually at (0,0) relative to this wrapper,
+            // but since this wrapper is transparent in the Stack,
+            // we often set the child to the same rect.
+            properties.child->setBounds(Rect(0, 0, rect.width, rect.height)); 
+        }
     }
 
-    // Allow the Stack to access these properties
+    void dispose() override {
+        if (properties.child) properties.child->dispose();
+    }
+
     const PositionedProperties& getProps() const { return properties; }
 
 protected:
     PositionedProperties properties;
+    Rect bounds;
 };
 
 // ==========================================
@@ -56,8 +79,9 @@ protected:
 // ==========================================
 
 enum class StackFit {
-    Loose,  // Non-positioned children can be smaller than the stack
-    Expand  // Non-positioned children are forced to fill the stack
+    Loose,  // Stack wraps its non-positioned children
+    Expand, // Stack fills the parent
+    Passthrough
 };
 
 struct StackProperties {
@@ -77,30 +101,78 @@ public:
         }
     }
 
-    void setBounds(const Rect& rect) override {
-        InternalDrawable::setBounds(rect);
+    void layout(BoxConstraints constraints) override {
+        float hasNonPositioned = false;
+        float maxChildWidth = 0.0f;
+        float maxChildHeight = 0.0f;
+
+        // 1. Layout Non-Positioned Children
+        // These determine the size of the stack if it's "Loose"
+        BoxConstraints nonPosConstraints;
+        if (properties.fit == StackFit::Expand) {
+            nonPosConstraints = BoxConstraints::tight(constraints.maxWidth, constraints.maxHeight);
+        } else if (properties.fit == StackFit::Passthrough) {
+            nonPosConstraints = constraints;
+        } else {
+            nonPosConstraints = BoxConstraints::loose(constraints.maxWidth, constraints.maxHeight);
+        }
 
         for (auto& child : properties.children) {
-            // 1. Check if the child is wrapped in a "Positioned" widget
-            auto positioned = std::dynamic_pointer_cast<D_Positioned>(child);
+            if (std::dynamic_pointer_cast<D_Positioned>(child)) continue;
 
+            child->layout(nonPosConstraints);
+            Rect childSize = child->getBounds();
+            
+            maxChildWidth = std::max(maxChildWidth, childSize.width);
+            maxChildHeight = std::max(maxChildHeight, childSize.height);
+            hasNonPositioned = true;
+        }
+
+        // 2. Determine Stack Size
+        if (properties.fit == StackFit::Expand) {
+            bounds.width = constraints.maxWidth;
+            bounds.height = constraints.maxHeight;
+        } else {
+            // Loose: Size is max child size, clamped by constraints
+            float targetW = (constraints.minWidth == constraints.maxWidth) ? constraints.maxWidth : maxChildWidth;
+            float targetH = (constraints.minHeight == constraints.maxHeight) ? constraints.maxHeight : maxChildHeight;
+            
+            bounds.width = std::clamp(targetW, constraints.minWidth, constraints.maxWidth);
+            bounds.height = std::clamp(targetH, constraints.minHeight, constraints.maxHeight);
+        }
+        
+        // Handle infinite bounds edge case (empty stack)
+        if (bounds.width == INFINITY) bounds.width = 0;
+        if (bounds.height == INFINITY) bounds.height = 0;
+
+        // 3. Layout Positioned Children & Calculate Offsets
+        for (auto& child : properties.children) {
+            // Is it Positioned?
+            auto positioned = std::dynamic_pointer_cast<D_Positioned>(child);
+            
             if (positioned) {
-                applyPositionedLayout(positioned, rect);
+                layoutPositionedChild(positioned, bounds.width, bounds.height);
             } else {
-                applyAlignedLayout(child, rect);
+                // Align Non-Positioned Child
+                Rect childSize = child->getBounds();
+                float alignX = properties.alignment.x; // Assumes 0.0 to 1.0
+                float alignY = properties.alignment.y;
+
+                float x = (bounds.width - childSize.width) * alignX;
+                float y = (bounds.height - childSize.height) * alignY;
+                
+                // Store relative position in the child's bounds (x,y)
+                child->setBounds(Rect(x, y, childSize.width, childSize.height));
             }
         }
     }
 
     void onDraw(GraphicsContext* ctx, float x, float y) override {
-        // Draw children from bottom (index 0) to top
+        // Draw children from bottom to top
         for (auto& child : properties.children) {
-            // Child coordinates are usually relative to the window in this simple framework,
-            // or relative to parent. Assuming 'x, y' passed here is the Stack's top-left.
-            
-            // We use the child's stored bounds (calculated in setBounds)
-            Rect childBounds = child->getBounds();
-            child->onDraw(ctx, childBounds.x, childBounds.y);
+            Rect childLocal = child->getBounds();
+            // Translate local coordinates to global screen coordinates
+            child->onDraw(ctx, x + childLocal.x, y + childLocal.y);
         }
     }
 
@@ -116,75 +188,88 @@ public:
         }
     }
 
+    Rect getBounds() const override { return bounds; }
+    void setBounds(const Rect& rect) override { bounds = rect; }
+
 private:
-    void applyPositionedLayout(std::shared_ptr<D_Positioned> wrapper, const Rect& stackRect) {
+    void layoutPositionedChild(std::shared_ptr<D_Positioned> wrapper, float stackW, float stackH) {
         auto& props = wrapper->getProps();
         
-        float x = stackRect.x;
-        float y = stackRect.y;
-        float w = 0;
-        float h = 0;
+        float minW = 0, maxW = stackW;
+        float minH = 0, maxH = stackH;
+        float x = 0, y = 0;
 
-        // --- Horizontal Logic ---
+        // --- Horizontal Resolution ---
         if (props.left.has_value() && props.right.has_value()) {
-            // Stretched horizontally
-            x += *props.left;
-            w = stackRect.width - *props.left - *props.right;
+            // Stretched: fixed width determined by parent
+            float w = std::max(0.0f, stackW - *props.left - *props.right);
+            minW = maxW = w;
+            x = *props.left;
+        } else if (props.left.has_value() && props.width.has_value()) {
+            minW = maxW = *props.width;
+            x = *props.left;
+        } else if (props.right.has_value() && props.width.has_value()) {
+            minW = maxW = *props.width;
+            x = stackW - *props.right - *props.width;
         } else if (props.left.has_value()) {
-            // Pinned left
-            x += *props.left;
-            w = props.width.value_or(wrapper->getBounds().width); // Use explicit width or current
+            // Loose width, anchored left
+            maxW = std::max(0.0f, stackW - *props.left);
+            x = *props.left; // Temporary, waiting for child layout
         } else if (props.right.has_value()) {
-            // Pinned right
-            w = props.width.value_or(wrapper->getBounds().width);
-            x += stackRect.width - *props.right - w;
-        } else {
-            // Default to left 0 or center? Usually behaves like normal child if no constraints
-            w = props.width.value_or(wrapper->getBounds().width);
+            // Loose width, anchored right
+            maxW = std::max(0.0f, stackW - *props.right);
+            // X depends on child width, resolved after layout
+        } else if (props.width.has_value()) {
+            // Centered/Aligned with specific width
+            minW = maxW = *props.width;
         }
-
-        // --- Vertical Logic ---
+        
+        // --- Vertical Resolution ---
         if (props.top.has_value() && props.bottom.has_value()) {
-            // Stretched vertically
-            y += *props.top;
-            h = stackRect.height - *props.top - *props.bottom;
+            float h = std::max(0.0f, stackH - *props.top - *props.bottom);
+            minH = maxH = h;
+            y = *props.top;
+        } else if (props.top.has_value() && props.height.has_value()) {
+            minH = maxH = *props.height;
+            y = *props.top;
+        } else if (props.bottom.has_value() && props.height.has_value()) {
+            minH = maxH = *props.height;
+            y = stackH - *props.bottom - *props.height;
         } else if (props.top.has_value()) {
-            // Pinned top
-            y += *props.top;
-            h = props.height.value_or(wrapper->getBounds().height);
+            maxH = std::max(0.0f, stackH - *props.top);
+            y = *props.top;
         } else if (props.bottom.has_value()) {
-            // Pinned bottom
-            h = props.height.value_or(wrapper->getBounds().height);
-            y += stackRect.height - *props.bottom - h;
-        } else {
-            h = props.height.value_or(wrapper->getBounds().height);
+            maxH = std::max(0.0f, stackH - *props.bottom);
+        } else if (props.height.has_value()) {
+            minH = maxH = *props.height;
         }
 
-        wrapper->setBounds(Rect(x, y, w, h));
-    }
+        // Layout the child with these calculated constraints
+        wrapper->layout(BoxConstraints(minW, maxW, minH, maxH));
+        Rect childSize = wrapper->getBounds();
 
-    void applyAlignedLayout(std::shared_ptr<InternalDrawable> child, const Rect& stackRect) {
-        if (properties.fit == StackFit::Expand) {
-            child->setBounds(stackRect);
-            return;
+        // --- Final Position Resolution ---
+        // (For cases where we needed child size to determine position, e.g., right-aligned)
+        
+        if (!props.left.has_value() && props.right.has_value()) {
+             x = stackW - *props.right - childSize.width;
+        } else if (!props.left.has_value() && !props.right.has_value()) {
+             // Use Alignment if no horizontal position is set
+             x = (stackW - childSize.width) * properties.alignment.x;
         }
 
-        Rect childBounds = child->getBounds(); // Get intrinsic/current size
+        if (!props.top.has_value() && props.bottom.has_value()) {
+             y = stackH - *props.bottom - childSize.height;
+        } else if (!props.top.has_value() && !props.bottom.has_value()) {
+             // Use Alignment if no vertical position is set
+             y = (stackH - childSize.height) * properties.alignment.y;
+        }
 
-        // Calculate alignment offsets
-        // x = StackX + (StackWidth - ChildWidth) * AlignX
-        float offsetX = (stackRect.width - childBounds.width) * properties.alignment.x;
-        float offsetY = (stackRect.height - childBounds.height) * properties.alignment.y;
-
-        child->setBounds(Rect(
-            stackRect.x + offsetX,
-            stackRect.y + offsetY,
-            childBounds.width,
-            childBounds.height
-        ));
+        wrapper->setBounds(Rect(x, y, childSize.width, childSize.height));
     }
 
     StackProperties properties;
+    Rect bounds;
 };
 
 #define Stack(...) \

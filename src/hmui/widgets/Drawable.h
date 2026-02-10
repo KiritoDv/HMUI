@@ -2,6 +2,7 @@
 
 #include "hmui/widgets/InternalDrawable.h"
 #include <stdexcept>
+#include <memory>
 
 class Drawable : public InternalDrawable {
 public:
@@ -12,16 +13,25 @@ public:
         throw std::runtime_error("build() method must be implemented");
     }
 
-    virtual void init() override {
+    void init() override {
         self = this->build();
+        if (!self) {
+             throw std::runtime_error("build() returned nullptr");
+        }
         self->init();
     }
 
-    virtual void dispose() override {
+    void layout(BoxConstraints constraints) override {
         if (self == nullptr) {
             throw std::runtime_error("Drawable has not been initialized, forgot to call super.init()?");
         }
+        self->layout(constraints);
+    }
 
+    void dispose() override {
+        if (self == nullptr) {
+            throw std::runtime_error("Drawable has not been initialized, forgot to call super.init()?");
+        }
         self->dispose();
     }
 
@@ -29,9 +39,7 @@ public:
         if (self == nullptr) {
             throw std::runtime_error("Drawable has not been initialized, forgot to call super.init()?");
         }
-
-        auto _bounds = self->getBounds();
-        self->setBounds(Rect(x, y, _bounds.width, _bounds.height));
+        // Just forward the draw call. Position is handled by the parent calling this with correct x/y.
         self->onDraw(ctx, x, y);
     }
 
@@ -39,7 +47,6 @@ public:
         if (self == nullptr) {
             throw std::runtime_error("Drawable has not been initialized, forgot to call super.init()?");
         }
-
         self->onUpdate(delta);
     }
 
@@ -47,7 +54,6 @@ public:
         if (self == nullptr) {
             throw std::runtime_error("Drawable has not been initialized, forgot to call super.init()?");
         }
-
         self->setBounds(rect);
         InternalDrawable::setBounds(rect);
     }
@@ -56,7 +62,6 @@ public:
         if (self == nullptr) {
             throw std::runtime_error("Drawable has not been initialized, forgot to call super.init()?");
         }
-
         return self->getBounds();
     }
 
@@ -64,7 +69,6 @@ public:
         if (self == nullptr) {
             throw std::runtime_error("Drawable has not been initialized, forgot to call super.init()?");
         }
-
         return self->getParent();
     }
 
@@ -72,7 +76,6 @@ public:
         if (self == nullptr) {
             throw std::runtime_error("Drawable has not been initialized, forgot to call super.init()?");
         }
-
         self->setParent(_parent);
     }
 

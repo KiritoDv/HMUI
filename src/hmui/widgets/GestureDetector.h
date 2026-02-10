@@ -1,88 +1,121 @@
 #pragma once
 
+#include "hmui/widgets/InternalDrawable.h"
 #include <memory>
 #include <functional>
-#include <stdexcept>
-#include "Drawable.h"
+#include <utility>
 
-typedef std::function<void(std::shared_ptr<InternalDrawable>&, float, float)> GestureDetectorFunction;
+// Callback signature: Child, MouseX, MouseY
+typedef std::function<void(std::shared_ptr<InternalDrawable>, float, float)> GestureCallback;
 
 struct GestureDetectorProperties {
-    GestureDetectorFunction onTap = nullptr;
-    GestureDetectorFunction onTapRelease = nullptr;
-    GestureDetectorFunction onHover = nullptr;
-    GestureDetectorFunction onHoverEnd = nullptr;
+    GestureCallback onTap = nullptr;
+    GestureCallback onTapRelease = nullptr;
+    GestureCallback onHover = nullptr;
+    GestureCallback onHoverEnd = nullptr;
     std::shared_ptr<InternalDrawable> child = nullptr;
 };
 
-class D_GestureDetector : public Drawable {
+class D_GestureDetector : public InternalDrawable {
 public:
-    bool isHovered = false; // track hover state
-    bool isPressed = false;
     explicit D_GestureDetector(GestureDetectorProperties properties)
         : properties(std::move(properties)) {}
 
-    std::shared_ptr<InternalDrawable> build() override {
-        if (!properties.child) {
-            throw std::runtime_error("GestureDetector must have a child drawable");
+    void init() override {
+        if (properties.child) {
+            properties.child->init();
+            properties.child->setParent(shared_from_this());
         }
-        return properties.child;
+    }
+
+    void layout(BoxConstraints constraints) override {
+        if (properties.child) {
+            // Pass constraints through to child
+            properties.child->layout(constraints);
+            
+            // GestureDetector adopts the size of its child
+            Rect childBounds = properties.child->getBounds();
+            bounds.width = childBounds.width;
+            bounds.height = childBounds.height;
+        } else {
+            // No child: minimal size (or 0)
+            bounds.width = constraints.minWidth;
+            bounds.height = constraints.minHeight;
+        }
+    }
+
+    void onDraw(GraphicsContext* ctx, float x, float y) override {
+        // Capture absolute screen coordinates for hit testing
+        absoluteRect = Rect(x, y, bounds.width, bounds.height);
+
+        if (properties.child) {
+            properties.child->onDraw(ctx, x, y);
+        }
     }
 
     void onUpdate(float delta) override {
-        Drawable::onUpdate(delta);
+        if (properties.child) {
+            properties.child->onUpdate(delta);
+        }
 
         auto os = hmui->getOSContext();
-        auto bounds = properties.child->getBounds();
         auto mousePos = os->getMousePosition();
-        bool hoveredNow = bounds.contains(mousePos.x, mousePos.y);
 
-        // Press detection
-        if (hoveredNow && os->isMouseButtonPressed(0) || os->isTouchActive()) {
+        // Hit Test using the absolute rect captured during Draw
+        bool isHovering = (mousePos.x >= absoluteRect.x &&
+                           mousePos.x <= absoluteRect.x + absoluteRect.width &&
+                           mousePos.y >= absoluteRect.y &&
+                           mousePos.y <= absoluteRect.y + absoluteRect.height);
+
+        // 1. Hover Logic
+        if (!os->isTouchDevice()) {
+            if (isHovering && !isHovered) {
+                isHovered = true;
+                if (properties.onHover) properties.onHover(properties.child, mousePos.x, mousePos.y);
+            } else if (!isHovering && isHovered) {
+                isHovered = false;
+                if (properties.onHoverEnd) properties.onHoverEnd(properties.child, mousePos.x, mousePos.y);
+            }
+        }
+
+        // 2. Tap/Press Logic
+        bool isMouseDown = os->isMouseButtonPressed(0) || os->isTouchActive();
+
+        if (isHovering && isMouseDown) {
             if (!isPressed) {
                 isPressed = true;
                 if (properties.onTap) properties.onTap(properties.child, mousePos.x, mousePos.y);
             }
         } else {
-            // Release
-            if (isPressed) {
+            // Logic for release: 
+            // If we were pressed, and now input is gone, trigger release.
+            // (Note: standard UI triggers release even if mouse left bounds, as long as it started there)
+            if (isPressed && !isMouseDown) {
                 isPressed = false;
                 if (properties.onTapRelease) properties.onTapRelease(properties.child, mousePos.x, mousePos.y);
             }
         }
-
-
-        if (os->isTouchDevice()) {
-            return; // Skip hover which is not supported for touch devices
-        }
-
-        // Hover enter
-        if (hoveredNow && !isHovered) {
-            isHovered = true;
-            if (properties.onHover) properties.onHover(properties.child, mousePos.x, mousePos.y);
-        }
-
-        // Hover exit
-        if (!hoveredNow && isHovered) {
-            isHovered = false;
-            if (properties.onHoverEnd) properties.onHoverEnd(properties.child, mousePos.x, mousePos.y);
-        }
-
-
-
     }
 
     Rect getBounds() const override {
-        return properties.child->getBounds();
+        return bounds;
     }
 
-    void setBounds(const Rect& rect) override{
-        properties.child->setBounds(rect);
-        Drawable::setBounds(rect);
+    void setBounds(const Rect& rect) override {
+        bounds = rect;
+    }
+
+    void dispose() override {
+        if (properties.child) properties.child->dispose();
     }
 
 protected:
     GestureDetectorProperties properties;
+    Rect bounds;         // Local size
+    Rect absoluteRect;   // Global position for hit testing
+    
+    bool isHovered = false;
+    bool isPressed = false;
 };
 
 #define GestureDetector(...) \

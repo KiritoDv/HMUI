@@ -4,6 +4,7 @@
 #include <vector>
 #include <memory>
 #include <algorithm>
+#include <cmath>
 
 enum class CrossAxisAlignment {
     LEFT,
@@ -31,50 +32,101 @@ class D_Column : public InternalDrawable {
 public:
     explicit D_Column(
         const ColumnProperties& properties
-    ) : children(properties.children), mainAxisAlignment(properties.mainAxisAlignment), crossAxisAlignment(properties.crossAxisAlignment) {};
+    ) : children(properties.children), 
+        mainAxisAlignment(properties.mainAxisAlignment), 
+        crossAxisAlignment(properties.crossAxisAlignment) {};
 
     void init() override {
         for (const auto& child : children) {
             child->init();
-            bounds.width = std::max(bounds.width, child->getBounds().width);
-            bounds.height += child->getBounds().height;
+            child->setParent(shared_from_this());
         }
-        int bp = 0;
+    }
+
+    void layout(BoxConstraints constraints) override {
+        float maxChildWidth = 0.0f;
+        float totalChildrenHeight = 0.0f;
+        std::vector<Rect> childSizes;
+        childSizes.reserve(children.size());
+
+        BoxConstraints childConstraints(0.0f, constraints.maxWidth, 0.0f, INFINITY);
+
+        for (auto& child : children) {
+            child->layout(childConstraints);
+            Rect size = child->getBounds();
+            childSizes.push_back(size);
+            
+            maxChildWidth = std::max(maxChildWidth, size.width);
+            totalChildrenHeight += size.height;
+        }
+
+        float finalWidth = std::max(constraints.minWidth, maxChildWidth);
+        float finalHeight = std::max(constraints.minHeight, totalChildrenHeight);
+
+        if (constraints.maxWidth != INFINITY && constraints.maxWidth == constraints.minWidth) {
+             finalWidth = constraints.maxWidth;
+        }
+        if (constraints.maxHeight != INFINITY && constraints.maxHeight == constraints.minHeight) {
+             finalHeight = constraints.maxHeight;
+        }
+
+        bounds.width = std::clamp(finalWidth, constraints.minWidth, constraints.maxWidth);
+        bounds.height = std::clamp(finalHeight, constraints.minHeight, constraints.maxHeight);
+
+        float freeSpace = bounds.height - totalChildrenHeight;
+        float yOffset = 0.0f;
+        float spaceBetween = 0.0f;
+
+        if (freeSpace > 0 && !children.empty()) {
+            switch(mainAxisAlignment) {
+                case MainAxisAlignment::START: 
+                    yOffset = 0.0f; 
+                    break;
+                case MainAxisAlignment::END: 
+                    yOffset = freeSpace; 
+                    break;
+                case MainAxisAlignment::CENTER: 
+                    yOffset = freeSpace / 2.0f; 
+                    break;
+                case MainAxisAlignment::SPACE_BETWEEN: 
+                    if (children.size() > 1) {
+                        spaceBetween = freeSpace / (children.size() - 1);
+                    }
+                    break;
+                case MainAxisAlignment::SPACE_AROUND: 
+                    spaceBetween = freeSpace / children.size();
+                    yOffset = spaceBetween / 2.0f;
+                    break;
+            }
+        }
+
+        float currentY = yOffset;
+        for (size_t i = 0; i < children.size(); ++i) {
+            auto& child = children[i];
+            Rect size = childSizes[i];
+
+            float xOffset = 0.0f;
+            switch(crossAxisAlignment) {
+                case CrossAxisAlignment::LEFT: 
+                    xOffset = 0.0f; 
+                    break;
+                case CrossAxisAlignment::CENTER: 
+                    xOffset = (bounds.width - size.width) / 2.0f; 
+                    break;
+                case CrossAxisAlignment::RIGHT: 
+                    xOffset = bounds.width - size.width; 
+                    break;
+            }
+
+            child->setBounds(Rect(xOffset, currentY, size.width, size.height));
+            currentY += size.height + spaceBetween;
+        }
     }
 
     void onDraw(GraphicsContext* ctx, float x, float y) override {
-        float xPos = x;
-        float yPos = mainAxisAlignment == MainAxisAlignment::START ? y : 
-                      (mainAxisAlignment == MainAxisAlignment::CENTER ? y + (bounds.height / 2) : y + bounds.height);
         for (const auto& child : children) {
-            if (crossAxisAlignment == CrossAxisAlignment::LEFT) {
-                xPos = x;
-            } else if (crossAxisAlignment == CrossAxisAlignment::CENTER) {
-                xPos = x + (bounds.width - child->getBounds().width) / 2;
-            } else if (crossAxisAlignment == CrossAxisAlignment::RIGHT) {
-                xPos = x + bounds.width - child->getBounds().width;
-            }
-
-            child->setBounds(Rect(xPos, yPos, child->getBounds().width, child->getBounds().height));
-            child->onDraw(ctx, xPos, yPos);
-            
-            switch(mainAxisAlignment) {
-                case MainAxisAlignment::START:
-                    yPos += child->getBounds().height;
-                    break;
-                case MainAxisAlignment::CENTER:
-                    yPos += (child->getBounds().height / 2);
-                    break;
-                case MainAxisAlignment::END:
-                    yPos -= child->getBounds().height;
-                    break;
-                case MainAxisAlignment::SPACE_BETWEEN:
-                    yPos += (bounds.height - child->getBounds().height) / (children.size() - 1);
-                    break;
-                case MainAxisAlignment::SPACE_AROUND:
-                    yPos += (bounds.height - child->getBounds().height) / (children.size() + 1);
-                    break;
-            }
+            Rect childLocalParams = child->getBounds();
+            child->onDraw(ctx, x + childLocalParams.x, y + childLocalParams.y);
         }
     }
 
@@ -85,7 +137,11 @@ public:
     }
 
     Rect getBounds() const override {
-        return this->bounds;
+        return bounds;
+    }
+
+    void setBounds(const Rect& rect) override {
+        bounds = rect;
     }
 
 protected:

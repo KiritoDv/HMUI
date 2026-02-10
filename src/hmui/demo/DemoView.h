@@ -10,11 +10,13 @@
 #include "hmui/widgets/Drawable.h"
 #include "hmui/widgets/AppContext.h"
 #include "hmui/graphics/providers/RayImageProvider.h"
+#include "hmui/widgets/Image.h"
+#include "hmui/widgets/Stack.h"
 #include "hmui/Navigator.h"
 
 std::shared_ptr<D_Container> nestedTest(std::vector<Color2D> entries, size_t index = 0) {
     if (index >= entries.size()) {
-        return Container(); // base case: empty container
+        return Container(); // base case
     }
 
     return Container(
@@ -22,21 +24,15 @@ std::shared_ptr<D_Container> nestedTest(std::vector<Color2D> entries, size_t ind
         .alignment = Alignment::Center(),
         .color = entries[index],
         .child = GestureDetector(
-            .onHover = [](std::shared_ptr<InternalDrawable>& child, float x, float y) {
-                // Handle tap event
-                std::shared_ptr<D_Container> c = std::dynamic_pointer_cast<D_Container>(child);
-                c->properties.color = Color2D(
-                    rand() % 256 / 255.0f,
-                    rand() % 256 / 255.0f,
-                    rand() % 256 / 255.0f
-                );
-                std::cout << "Tapped on child at (" << x << ", " << y << ")\n";
+            // Reordered to match struct: onTap, onTapRelease, onHover, onHoverEnd, child
+            .onTap = [](std::shared_ptr<InternalDrawable> child, float x, float y) {
+                std::cout << "Hovered/Tapped\n"; // Logic merged for brevity
             },
-            .onTap = [](std::shared_ptr<InternalDrawable>& child, float x, float y) {
-                // Handle hover event
-                std::cout << "Hovered over child at (" << x << ", " << y << ")\n";
+            .onHover = [](std::shared_ptr<InternalDrawable> child, float x, float y) {
+                 std::shared_ptr<D_Container> c = std::dynamic_pointer_cast<D_Container>(child);
+                 if(c) c->properties.color = Color2D(1, 0, 1, 1); 
             },
-            .child = nestedTest(entries, index + 1),
+            .child = nestedTest(entries, index + 1)
         )
     );
 }
@@ -48,50 +44,52 @@ public:
 
     void init() override {
         for(int i = 0; i < 30; ++i) {
-            // entries.push_back(Color2D(
-            //     rand() % 256 / 255.0f,
-            //     rand() % 256 / 255.0f,
-            //     rand() % 256 / 255.0f
+            // entries.push_back(Container(
+            //     .color = Color2D(
+            //         rand() % 256 / 255.0f,
+            //         rand() % 256 / 255.0f,
+            //         rand() % 256 / 255.0f
+            //     ),
+            //     .image = {
+            //         .provider = TextureProvider("test.png")
+            //     },
+            //     .width = 200.0f,
+            //     .height = 100.0f
             // ));
             entries.push_back(Container(
+                .width = 0,
+                .height = 100.0f,
                 .color = Color2D(
                     rand() % 256 / 255.0f,
                     rand() % 256 / 255.0f,
                     rand() % 256 / 255.0f
                 ),
-                .image = {
-                    .provider = TextureProvider("test.png")
-                },
-                .width = 130.0f,
-                .height = 100.0f
+                .child = Image(
+                    .provider = TextureProvider("test.png"),
+                    .fit = BoxFit::Cover
+                )
             ));
         }
         Drawable::init();
     }
 
     std::shared_ptr<InternalDrawable> build() override {
-        // Example of building a simple UI with a column and a container
-        // return Container(
-        //     .alignment = Alignment::Center,
-        //     .child = Container(
-        //         .alignment = Alignment::BottomRight,
-        //         .child = nestedTest(entries)
-        //     )
-        // );
-
         return Container(
             .child = Container(
                 .width = 200.0f,
                 .height = 300.0f,
-                .padding = EdgeInsets::all(5.0f),
+                .padding = EdgeInsets::all(15.0f),
                 .clipToBounds = true,
-                .color = Color2D(0.0f, 0.0f, 0.0f, 0.3f),
+                .color = Color2D(1.0f, 0.0f, 0.0f, 0.3f),
                 .child = GestureDetector(
-                    .onTap = [](std::shared_ptr<InternalDrawable>& child, float x, float y) {
+                    .onTap = [](std::shared_ptr<InternalDrawable> child, float x, float y) {
                         Navigator::push("/alternate");
                     },
-                    .child = Column(
-                        .children = entries
+                    .child = Scrollable(
+                        .direction = Direction::Vertical,
+                        .child = Column(
+                            .children = entries
+                        )
                     )
                 )
             )
@@ -103,16 +101,10 @@ public:
 
 class AlternateTestView : public Drawable {
 public:
-    // std::vector<Color2D> entries;
     std::vector<std::shared_ptr<InternalDrawable>> entries;
 
     void init() override {
         for(int i = 0; i < 30; ++i) {
-            // entries.push_back(Color2D(
-            //     rand() % 256 / 255.0f,
-            //     rand() % 256 / 255.0f,
-            //     rand() % 256 / 255.0f
-            // ));
             entries.push_back(Container(
                 .color = Color2D(
                     rand() % 256 / 255.0f,
@@ -127,15 +119,6 @@ public:
     }
 
     std::shared_ptr<InternalDrawable> build() override {
-        // Example of building a simple UI with a column and a container
-        // return Container(
-        //     .alignment = Alignment::Center,
-        //     .child = Container(
-        //         .alignment = Alignment::BottomRight,
-        //         .child = nestedTest(entries)
-        //     )
-        // );
-
         return Container(
             .color = Color2D(0.0f, 1.0f, 0.0f, 0.5f),
             .child = Container(

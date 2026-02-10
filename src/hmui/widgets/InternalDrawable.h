@@ -4,6 +4,38 @@
 #include <utility>
 #include "hmui/HMUI.h"
 #include "hmui/graphics/GraphicsContext.h"
+#include <algorithm>
+#include <cmath>
+
+struct BoxConstraints {
+    float minWidth = 0.0f;
+    float maxWidth = INFINITY;
+    float minHeight = 0.0f;
+    float maxHeight = INFINITY;
+
+    BoxConstraints() = default;
+    BoxConstraints(float minW, float maxW, float minH, float maxH)
+        : minWidth(minW), maxWidth(maxW), minHeight(minH), maxHeight(maxH) {}
+
+    // Helper to create loose constraints (0 to max)
+    static BoxConstraints loose(float w, float h) {
+        return BoxConstraints(0, w, 0, h);
+    }
+    
+    // Helper to create tight constraints (exact size)
+    static BoxConstraints tight(float w, float h) {
+        return BoxConstraints(w, w, h, h);
+    }
+
+    // Clamp a size within these constraints
+    struct Size { float width; float height; };
+    Size constrain(float w, float h) const {
+        return Size{
+            std::clamp(w, minWidth, maxWidth),
+            std::clamp(h, minHeight, maxHeight)
+        };
+    }
+};
 
 struct EdgeInsets {
     float left, top, right, bottom;
@@ -57,6 +89,11 @@ public:
     virtual void init() {}
 
     virtual void dispose() {}
+
+    virtual void layout(BoxConstraints constraints) {
+        // Default implementation for non-container drawables (e.g. Text, Image)
+        // calculates its size based on constraints and sets bounds.width/height
+    }
 
     virtual void onDraw(GraphicsContext* ctx, float x, float y) {}
 

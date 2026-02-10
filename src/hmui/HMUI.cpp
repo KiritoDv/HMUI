@@ -27,7 +27,7 @@ void HMUI::show(const std::shared_ptr<InternalDrawable>& _drawable) {
             throw std::runtime_error("InternalDrawable cannot be null");
         }
 
-        auto self = shared_from_this();
+        // Init resources (textures, etc.)
         drawable->init();
     } else {
         throw std::invalid_argument("View cannot be null");
@@ -40,7 +40,21 @@ void HMUI::draw(GfxList* out, int width, int height) {
     }
 
     this->context->build(out);
-    this->drawable->setBounds(Rect(0, 0, (float) width, (float) height));
+
+    // --- 1. Layout Phase ---
+    // The root of the tree gets "Tight" constraints, forcing it to fill the window.
+    // This triggers the cascade of layout() calls down the widget tree.
+    BoxConstraints rootConstraints = BoxConstraints::tight((float)width, (float)height);
+    this->drawable->layout(rootConstraints);
+
+    // --- 2. Positioning Phase ---
+    // As the root parent, we dictate that the root widget sits at (0,0).
+    // layout() calculated the size, we now ensure the position is correct.
+    Rect calculatedBounds = this->drawable->getBounds();
+    this->drawable->setBounds(Rect(0, 0, calculatedBounds.width, calculatedBounds.height));
+
+    // --- 3. Paint Phase ---
+    // Render the tree at the determined position.
     this->drawable->onDraw(context.get(), 0, 0);
 }
 
@@ -63,6 +77,8 @@ void HMUI::close(){
 
 HMUI::~HMUI() {
     this->close();
-    this->context->dispose();
-    this->context = nullptr;
+    if(this->context) {
+        this->context->dispose();
+        this->context = nullptr;
+    }
 }
