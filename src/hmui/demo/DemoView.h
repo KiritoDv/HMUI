@@ -61,9 +61,9 @@ public:
                     .child = Stack(
                         .children = {
                             Image(
+                                .provider = TextureProvider("assets/test.png"),
                                 .width = 80.0f,
                                 .height = 80.0f,
-                                .provider = TextureProvider("assets/test.png"),
                                 .fit = BoxFit::Contain
                             ),
                             Text(
@@ -130,9 +130,9 @@ public:
                     .child = Stack(
                         .children = {
                             Image(
+                                .provider = TextureProvider("assets/test2.png"),
                                 .width = 80.0f,
                                 .height = 80.0f,
-                                .provider = TextureProvider("assets/test2.png"),
                                 .fit = BoxFit::Contain
                             ),
                             Text(

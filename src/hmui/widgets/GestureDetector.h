@@ -10,12 +10,12 @@
 typedef std::function<void(std::shared_ptr<InternalDrawable>, float, float)> GestureCallback;
 
 struct GestureDetectorProperties {
+    bool focusable = false;
     GestureCallback onTap = nullptr;
     GestureCallback onTapRelease = nullptr;
     GestureCallback onHover = nullptr;
     GestureCallback onHoverEnd = nullptr;
     std::shared_ptr<InternalDrawable> child = nullptr;
-    bool focusable = false;
 };
 
 class D_GestureDetector : public InternalDrawable {
