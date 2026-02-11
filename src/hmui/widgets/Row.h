@@ -1,5 +1,3 @@
-#pragma once
-
 #include "hmui/widgets/InternalDrawable.h"
 #include <vector>
 #include <memory>
@@ -8,16 +6,16 @@
 
 typedef std::vector<std::shared_ptr<InternalDrawable>> ChildrenList;
 
-struct ColumnProperties {
+struct RowProperties {
     MainAxisAlignment mainAxisAlignment = MainAxisAlignment::START;
-    CrossAxisAlignment crossAxisAlignment = CrossAxisAlignment::LEFT;
+    CrossAxisAlignment crossAxisAlignment = CrossAxisAlignment::CENTER;
     ChildrenList children;
 };
 
-class D_Column : public InternalDrawable {
+class D_Row : public InternalDrawable {
 public:
-    explicit D_Column(
-        const ColumnProperties& properties
+    explicit D_Row(
+        const RowProperties& properties
     ) : children(properties.children), 
         mainAxisAlignment(properties.mainAxisAlignment), 
         crossAxisAlignment(properties.crossAxisAlignment) {};
@@ -30,49 +28,53 @@ public:
     }
 
     void layout(BoxConstraints constraints) override {
-        float maxChildWidth = 0.0f;
-        float totalChildrenHeight = 0.0f;
+        float maxChildHeight = 0.0f;
+        float totalChildrenWidth = 0.0f;
         std::vector<Rect> childSizes;
         childSizes.reserve(children.size());
 
-        BoxConstraints childConstraints(0.0f, constraints.maxWidth, 0.0f, INFINITY);
+        // Row Constraints: Unbounded width for children (to get intrinsic size), bounded height.
+        BoxConstraints childConstraints(0.0f, INFINITY, 0.0f, constraints.maxHeight);
 
+        // 1. Measure Children
         for (auto& child : children) {
             child->layout(childConstraints);
             Rect size = child->getBounds();
             childSizes.push_back(size);
-            
-            maxChildWidth = std::max(maxChildWidth, size.width);
-            totalChildrenHeight += size.height;
+
+            maxChildHeight = std::max(maxChildHeight, size.height);
+            totalChildrenWidth += size.width;
         }
 
-        float finalWidth = std::max(constraints.minWidth, maxChildWidth);
-        float finalHeight = std::max(constraints.minHeight, totalChildrenHeight);
+        // 2. Determine Final Dimensions
+        float finalWidth = std::max(constraints.minWidth, totalChildrenWidth);
+        float finalHeight = std::max(constraints.minHeight, maxChildHeight);
 
         if (constraints.maxWidth != INFINITY && constraints.maxWidth == constraints.minWidth) {
-             finalWidth = constraints.maxWidth;
+            finalWidth = constraints.maxWidth;
         }
         if (constraints.maxHeight != INFINITY && constraints.maxHeight == constraints.minHeight) {
-             finalHeight = constraints.maxHeight;
+            finalHeight = constraints.maxHeight;
         }
 
         bounds.width = std::clamp(finalWidth, constraints.minWidth, constraints.maxWidth);
         bounds.height = std::clamp(finalHeight, constraints.minHeight, constraints.maxHeight);
 
-        float freeSpace = bounds.height - totalChildrenHeight;
-        float yOffset = 0.0f;
+        // 3. Calculate Main Axis (Horizontal) Spacing
+        float freeSpace = bounds.width - totalChildrenWidth;
+        float xOffset = 0.0f;
         float spaceBetween = 0.0f;
 
         if (freeSpace > 0 && !children.empty()) {
             switch(mainAxisAlignment) {
                 case MainAxisAlignment::START: 
-                    yOffset = 0.0f; 
+                    xOffset = 0.0f; 
                     break;
                 case MainAxisAlignment::END: 
-                    yOffset = freeSpace; 
+                    xOffset = freeSpace; 
                     break;
                 case MainAxisAlignment::CENTER: 
-                    yOffset = freeSpace / 2.0f; 
+                    xOffset = freeSpace / 2.0f; 
                     break;
                 case MainAxisAlignment::SPACE_BETWEEN: 
                     if (children.size() > 1) {
@@ -81,31 +83,33 @@ public:
                     break;
                 case MainAxisAlignment::SPACE_AROUND: 
                     spaceBetween = freeSpace / children.size();
-                    yOffset = spaceBetween / 2.0f;
+                    xOffset = spaceBetween / 2.0f;
                     break;
             }
         }
 
-        float currentY = yOffset;
+        // 4. Position Children
+        float currentX = xOffset;
         for (size_t i = 0; i < children.size(); ++i) {
             auto& child = children[i];
             Rect size = childSizes[i];
 
-            float xOffset = 0.0f;
+            // Calculate Cross Axis (Vertical) Alignment
+            float yOffset = 0.0f;
             switch(crossAxisAlignment) {
-                case CrossAxisAlignment::LEFT: 
-                    xOffset = 0.0f; 
+                case CrossAxisAlignment::START: // Top align
+                    yOffset = 0.0f; 
                     break;
-                case CrossAxisAlignment::CENTER: 
-                    xOffset = (bounds.width - size.width) / 2.0f; 
+                case CrossAxisAlignment::CENTER: // Center align
+                    yOffset = (bounds.height - size.height) / 2.0f; 
                     break;
-                case CrossAxisAlignment::RIGHT: 
-                    xOffset = bounds.width - size.width; 
+                case CrossAxisAlignment::END: // Bottom align
+                    yOffset = bounds.height - size.height; 
                     break;
             }
 
-            child->setBounds(Rect(xOffset, currentY, size.width, size.height));
-            currentY += size.height + spaceBetween;
+            child->setBounds(Rect(currentX, yOffset, size.width, size.height));
+            currentX += size.width + spaceBetween;
         }
     }
 
@@ -143,4 +147,4 @@ protected:
     Rect bounds;
 };
 
-#define Column(...) std::make_shared<D_Column>(ColumnProperties{__VA_ARGS__})
+#define Row(...) std::make_shared<D_Row>(RowProperties{__VA_ARGS__})

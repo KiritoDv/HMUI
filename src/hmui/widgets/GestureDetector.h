@@ -8,7 +8,6 @@
 
 // Callback signature: Child, MouseX, MouseY
 typedef std::function<void(std::shared_ptr<InternalDrawable>, float, float)> GestureCallback;
-typedef std::function<void(std::shared_ptr<InternalDrawable>>) FocusCallback;
 typedef std::function<void(std::shared_ptr<InternalDrawable>, ControllerButton)> ControllerGestureCallback;
 
 struct FocusDecorator {

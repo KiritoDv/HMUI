@@ -7,6 +7,20 @@
 #include <algorithm>
 #include <cmath>
 
+enum class CrossAxisAlignment {
+    START,
+    CENTER,
+    END
+};
+
+enum class MainAxisAlignment {
+    START,
+    CENTER,
+    END,
+    SPACE_BETWEEN,
+    SPACE_AROUND
+};
+
 struct BoxConstraints {
     float minWidth = 0.0f;
     float maxWidth = INFINITY;
