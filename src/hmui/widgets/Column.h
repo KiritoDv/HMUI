@@ -10,7 +10,7 @@ typedef std::vector<std::shared_ptr<InternalDrawable>> ChildrenList;
 
 struct ColumnProperties {
     MainAxisAlignment mainAxisAlignment = MainAxisAlignment::START;
-    CrossAxisAlignment crossAxisAlignment = CrossAxisAlignment::LEFT;
+    CrossAxisAlignment crossAxisAlignment = CrossAxisAlignment::START;
     ChildrenList children;
 };
 
@@ -93,13 +93,13 @@ public:
 
             float xOffset = 0.0f;
             switch(crossAxisAlignment) {
-                case CrossAxisAlignment::LEFT: 
+                case CrossAxisAlignment::START:
                     xOffset = 0.0f; 
                     break;
-                case CrossAxisAlignment::CENTER: 
+                case CrossAxisAlignment::CENTER:
                     xOffset = (bounds.width - size.width) / 2.0f; 
                     break;
-                case CrossAxisAlignment::RIGHT: 
+                case CrossAxisAlignment::END:
                     xOffset = bounds.width - size.width; 
                     break;
             }
