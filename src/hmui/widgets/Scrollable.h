@@ -114,6 +114,11 @@ public:
         if (properties.clipToBounds) {
             ctx->clearScissor();
         }
+
+#ifdef DEBUG_COMPONENTS
+        // Debug bounds
+        ctx->drawRect(absoluteRect, Color2D(1.0f, 0.0f, 1.0f, 1.0f));
+#endif
     }
 
     float lerp(float a, float b, float t) {
