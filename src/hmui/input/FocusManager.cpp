@@ -8,13 +8,6 @@ std::shared_ptr<FocusManager> FocusManager::instance = nullptr;
 
 void FocusManager::registerNode(std::shared_ptr<FocusNode> node) {
     nodes.push_back(node);
-    // Auto-focus the first element if nothing is focused
-    if (!currentFocus) {
-        currentFocus = node;
-        if (currentFocus->onFocus) currentFocus->onFocus();
-
-        focusHistory.push_back(currentFocus); 
-    }
 }
 
 void FocusManager::unregisterNode(std::shared_ptr<FocusNode> node) {
@@ -87,7 +80,12 @@ struct Point { float x, y; };
 Point center(const Rect& r) { return { r.x + r.width/2, r.y + r.height/2 }; }
 
 void FocusManager::moveFocus(FocusDirection dir) {
-    if (!currentFocus) return;
+    if (!currentFocus) {
+        if (!nodes.empty()) {
+            setFocus(nodes.front());
+        }
+        return;
+    }
 
     Rect currentRect = getRect(currentFocus->widget);
     Point c1 = center(currentRect);

@@ -29,6 +29,10 @@ public:
     void registerNode(std::shared_ptr<FocusNode> node);
     void unregisterNode(std::shared_ptr<FocusNode> node);
 
+    std::shared_ptr<FocusNode> getCurrentFocus() {
+        return currentFocus;
+    }
+
     // Call this when the UI rebuilds or a view is popped
     void clear();
     void blur();

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "hmui/widgets/InternalDrawable.h"
+#include "hmui/input/FocusManager.h"
 #include <algorithm>
 #include <cmath>
 #include <utility>
@@ -145,6 +146,60 @@ public:
             if (std::abs(wheel) > 0.0f) {
                 nextOffset -= wheel * 50.0f; // Scroll speed multiplier
                 nextOffset = std::clamp(nextOffset, 0.0f, maxScrollExtent);
+            }
+        }
+
+        auto focusNode = FocusManager::get()->getCurrentFocus();
+        if (focusNode) {
+            if (auto focusedWidget = focusNode->widget.lock()) {
+
+                // 1. Calculate position relative to this Scrollable
+                // We walk up the tree from the focused widget until we hit 'this' (the Scrollable)
+                // summing the coordinates to get the relative position.
+                float childRelPos = 0.0f;
+                float childSize = 0.0f;
+
+                bool isDescendant = false;
+                auto walker = focusedWidget;
+
+                while (walker) {
+                    if (walker.get() == this) {
+                        isDescendant = true;
+                        break;
+                    }
+
+                    Rect walkerBounds = walker->getBounds();
+                    if (properties.direction == Direction::Vertical) {
+                        childRelPos += walkerBounds.y;
+                    } else {
+                        childRelPos += walkerBounds.x;
+                    }
+
+                    walker = walker->getParent();
+                }
+
+                // 2. If it is inside this scrollable, apply scroll logic
+                if (isDescendant) {
+                    Rect targetBounds = focusedWidget->getBounds();
+                    childSize = (properties.direction == Direction::Vertical) ? targetBounds.height : targetBounds.width;
+
+                    float viewportSize = (properties.direction == Direction::Vertical) ? bounds.height : bounds.width;
+
+                    // Add a small margin for visual comfort
+                    float margin = 20.0f; 
+
+                    // Check if target is above/left of current view
+                    if (childRelPos < nextOffset + margin) {
+                        nextOffset = std::max(0.0f, childRelPos - margin);
+                    } 
+                    // Check if target is below/right of current view
+                    else if (childRelPos + childSize > nextOffset + viewportSize - margin) {
+                        nextOffset = (childRelPos + childSize) - viewportSize + margin;
+                    }
+
+                    // Clamp to valid scroll range
+                    nextOffset = std::clamp(nextOffset, 0.0f, maxScrollExtent);
+                }
             }
         }
 

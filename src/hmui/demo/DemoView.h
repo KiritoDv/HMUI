@@ -46,6 +46,7 @@ public:
     void init() override {
         for(int i = 0; i < 30; ++i) {
             entries.push_back(GestureDetector(
+                .focusable = true,
                 .onTap = [](std::shared_ptr<InternalDrawable> child, float x, float y) {
                     std::cout << "Tapped item\n";
                 },

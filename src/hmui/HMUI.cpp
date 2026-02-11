@@ -68,6 +68,12 @@ void HMUI::update(float delta){
 
     // --- Controller Input Handling ---
     auto os = this->osContext;
+
+    Coord mouseDelta = os->getMouseDelta();
+    if (std::abs(mouseDelta.x) > 0.0f || std::abs(mouseDelta.y) > 0.0f) {
+        FocusManager::get()->blur();
+    }
+
     static float inputTimer = 0.0f;
     inputTimer -= delta;
 
