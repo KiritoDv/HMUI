@@ -8,6 +8,8 @@
 
 // Callback signature: Child, MouseX, MouseY
 typedef std::function<void(std::shared_ptr<InternalDrawable>, float, float)> GestureCallback;
+typedef std::function<void(std::shared_ptr<InternalDrawable>>) FocusCallback;
+typedef std::function<void(std::shared_ptr<InternalDrawable>, ControllerButton)> ControllerGestureCallback;
 
 struct FocusDecorator {
     Color2D color = Color2D(0.0f, 0.0f, 0.0f, 1.0f);
@@ -21,6 +23,9 @@ struct GestureDetectorProperties {
     GestureCallback onTapRelease = nullptr;
     GestureCallback onHover = nullptr;
     GestureCallback onHoverEnd = nullptr;
+    ControllerGestureCallback onControllerPress = nullptr;
+    ControllerGestureCallback onControllerRelease = nullptr;
+
     std::shared_ptr<InternalDrawable> child = nullptr;
 };
 
@@ -127,6 +132,19 @@ public:
             if (isPressed && !isMouseDown) {
                 isPressed = false;
                 if (properties.onTapRelease) properties.onTapRelease(properties.child, mousePos.x, mousePos.y);
+            }
+        }
+
+        // 3. Controller Press Logic (if focused)
+        if (focusNode && FocusManager::get()->isFocused(focusNode) && os->isGamepadAvailable(0)) {
+            if (properties.onControllerPress) {
+                for (int btn = static_cast<int>(ControllerButton::LEFT_FACE_UP); 
+                     btn <= static_cast<int>(ControllerButton::RIGHT_FACE_LEFT); 
+                     ++btn) {
+                    if (os->isGamepadButtonPressed(0, static_cast<ControllerButton>(btn))) {
+                        properties.onControllerPress(properties.child, static_cast<ControllerButton>(btn));
+                    }
+                }
             }
         }
     }
