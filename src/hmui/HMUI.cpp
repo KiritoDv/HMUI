@@ -60,7 +60,11 @@ void HMUI::draw(GfxList* out, int width, int height) {
 }
 
 void HMUI::update(float delta){
-    // ... existing update logic ...
+    if(this->drawable == nullptr) {
+        return;
+    }
+
+    this->drawable->onUpdate(delta);
 
     // --- Controller Input Handling ---
     auto os = this->osContext;

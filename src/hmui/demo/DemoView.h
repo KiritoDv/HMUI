@@ -45,28 +45,35 @@ public:
 
     void init() override {
         for(int i = 0; i < 30; ++i) {
-            entries.push_back(Container(
-                .width = 0,
-                .height = 100.0f,
-                .color = Color2D(
-                    rand() % 256 / 255.0f,
-                    rand() % 256 / 255.0f,
-                    rand() % 256 / 255.0f
-                ),
-                .child = Stack(
-                    .children = {
-                        Image(
-                            .provider = TextureProvider("assets/test.png"),
-                            .fit = BoxFit::Contain
-                        ),
-                        Text(
-                            .text = "Hello World",
-                            .scale = 2.0f,
-                            .alignH = HorizontalAlign::Center,
-                            .alignV = VerticalAlign::Center,
-                            .color = Color2D(1.0f, 1.0f, 1.0f, 1.0f)
-                        )
-                    }
+            entries.push_back(GestureDetector(
+                .onTap = [](std::shared_ptr<InternalDrawable> child, float x, float y) {
+                    std::cout << "Tapped item\n";
+                },
+                .child = Container(
+                    .width = 200.0f,
+                    .height = 100.0f,
+                    .color = Color2D(
+                        rand() % 256 / 255.0f,
+                        rand() % 256 / 255.0f,
+                        rand() % 256 / 255.0f
+                    ),
+                    .child = Stack(
+                        .children = {
+                            Image(
+                                .width = 80.0f,
+                                .height = 80.0f,
+                                .provider = TextureProvider("assets/test.png"),
+                                .fit = BoxFit::Contain
+                            ),
+                            Text(
+                                .text = "Hello World",
+                                .scale = 2.0f,
+                                .alignH = HorizontalAlign::Center,
+                                .alignV = VerticalAlign::Center,
+                                .color = Color2D(1.0f, 1.0f, 1.0f, 1.0f)
+                            )
+                        }
+                    )
                 )
             ));
         }
