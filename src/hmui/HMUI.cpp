@@ -68,6 +68,7 @@ void HMUI::update(float delta){
 
     // --- Controller Input Handling ---
     auto os = this->osContext;
+    os->update();
 
     Coord mouseDelta = os->getMouseDelta();
     if (std::abs(mouseDelta.x) > 0.0f || std::abs(mouseDelta.y) > 0.0f) {

@@ -5,6 +5,7 @@
 class RayOSContext : public OSContext {
 public:
     void init() override;
+    void update() override;
     void dispose() override;
     Coord getMouseDelta() override;
     Coord getMousePosition() override;

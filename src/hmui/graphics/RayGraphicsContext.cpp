@@ -20,8 +20,8 @@ void RayGraphicsContext::drawLine(float x1, float y1, float x2, float y2, const 
     });
 }
 
-void RayGraphicsContext::drawRect(const Rect& rect, const Color2D& color) {
-    DrawRectangleLinesEx(Rectangle{rect.x, rect.y, rect.width, rect.height}, 1.0f, Color {
+void RayGraphicsContext::drawRect(const Rect& rect, const Color2D& color, float thickness) {
+    DrawRectangleLinesEx(Rectangle{rect.x, rect.y, rect.width, rect.height}, thickness, Color {
         (uint8_t)(color.r * 255),
         (uint8_t)(color.g * 255),
         (uint8_t)(color.b * 255),

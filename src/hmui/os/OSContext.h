@@ -51,6 +51,7 @@ public:
     virtual ~OSContext() = default;
 
     virtual void init() = 0;
+    virtual void update() = 0;
     virtual void dispose() = 0;
 
     virtual Coord getMouseDelta() = 0;

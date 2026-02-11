@@ -9,8 +9,14 @@
 // Callback signature: Child, MouseX, MouseY
 typedef std::function<void(std::shared_ptr<InternalDrawable>, float, float)> GestureCallback;
 
+struct FocusDecorator {
+    Color2D color = Color2D(0.0f, 0.0f, 0.0f, 1.0f);
+    float thickness = 2.0f;
+};
+
 struct GestureDetectorProperties {
     bool focusable = false;
+    FocusDecorator focusDecorator;
     GestureCallback onTap = nullptr;
     GestureCallback onTapRelease = nullptr;
     GestureCallback onHover = nullptr;
@@ -77,7 +83,7 @@ public:
         }
 
         if (properties.focusable && focusNode && FocusManager::get()->isFocused(focusNode)) {
-            ctx->drawRect(absoluteRect, Color2D(0.0f, 0.0f, 0.0f, 1.0f));
+            ctx->drawRect(absoluteRect, properties.focusDecorator.color, properties.focusDecorator.thickness);
         }
     }
 

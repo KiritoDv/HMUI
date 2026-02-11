@@ -25,10 +25,10 @@ void ImGuiGraphicsContext::drawLine(float x1, float y1, float x2, float y2, cons
     draw_list->AddLine(p1, p2, ImColor((int)(color.r * 255), (int)(color.g * 255), (int)(color.b * 255), (int)(color.a * 255)));
 }
 
-void ImGuiGraphicsContext::drawRect(const Rect& rect, const Color2D& color) {
+void ImGuiGraphicsContext::drawRect(const Rect& rect, const Color2D& color, float thickness) {
     ImVec2 pos = normalize(rect);
     draw_list->AddRect(pos, ImVec2{pos.x + rect.width, pos.y + rect.height}, 
-        ImColor((int)(color.r * 255), (int)(color.g * 255), (int)(color.b * 255), (int)(color.a * 255)));
+        ImColor((int)(color.r * 255), (int)(color.g * 255), (int)(color.b * 255), (int)(color.a * 255)), 0.0f, 0, thickness);
 }
 
 void ImGuiGraphicsContext::fillRect(const Rect& rect, const Color2D& color) {

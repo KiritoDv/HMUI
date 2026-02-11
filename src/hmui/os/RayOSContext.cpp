@@ -3,6 +3,7 @@
 #include <raylib.h>
 
 void RayOSContext::init() {}
+void RayOSContext::update() {}
 void RayOSContext::dispose() {}
 
 Coord RayOSContext::getMouseDelta() {
