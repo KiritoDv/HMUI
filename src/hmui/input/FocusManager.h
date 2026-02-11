@@ -31,6 +31,7 @@ public:
 
     // Call this when the UI rebuilds or a view is popped
     void clear();
+    void blur();
 
     // The core navigation logic
     void moveFocus(FocusDirection dir);

@@ -12,6 +12,8 @@ void FocusManager::registerNode(std::shared_ptr<FocusNode> node) {
     if (!currentFocus) {
         currentFocus = node;
         if (currentFocus->onFocus) currentFocus->onFocus();
+
+        focusHistory.push_back(currentFocus); 
     }
 }
 
@@ -53,6 +55,10 @@ void FocusManager::clear() {
     nodes.clear();
     focusHistory.clear();
     currentFocus = nullptr;
+}
+
+void FocusManager::blur() {
+    setFocus(nullptr);
 }
 
 bool FocusManager::isFocused(const std::shared_ptr<FocusNode>& node) {

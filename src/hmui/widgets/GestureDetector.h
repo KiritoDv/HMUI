@@ -16,7 +16,6 @@ struct GestureDetectorProperties {
     GestureCallback onHoverEnd = nullptr;
     std::shared_ptr<InternalDrawable> child = nullptr;
     bool focusable = false;
-    std::string debugId = "widget";
 };
 
 class D_GestureDetector : public InternalDrawable {
@@ -34,7 +33,7 @@ public:
 
         if (properties.focusable) {
             focusNode = std::make_shared<FocusNode>();
-            focusNode->id = properties.debugId;
+            focusNode->id = "GestureDetector_" + std::to_string(reinterpret_cast<std::uintptr_t>(this));
             focusNode->widget = shared_from_this();
 
             // Define behaviors
@@ -135,6 +134,11 @@ public:
     }
 
     void dispose() override {
+        if (focusNode) {
+            FocusManager::get()->unregisterNode(focusNode);
+            focusNode = nullptr;
+        }
+
         if (properties.child) properties.child->dispose();
     }
 

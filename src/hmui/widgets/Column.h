@@ -144,6 +144,12 @@ public:
         bounds = rect;
     }
 
+    void dispose() override {
+        for (auto& child : children) {
+            child->dispose();
+        }
+    }
+
 protected:
     std::vector<std::shared_ptr<InternalDrawable>> children;
     MainAxisAlignment mainAxisAlignment;
