@@ -66,12 +66,13 @@ public:
     void push(std::shared_ptr<InternalDrawable> view) {
         if (!view) return;
 
+        FocusManager::get()->pushScope();
         FocusManager::get()->blur();
         view->init();
         view->setParent(shared_from_this());
         stack.push_back(view);
     }
-    
+
     // Overload to push by route name
     void pushNamed(const std::string& routeName) {
         auto builder = getRouteBuilder(routeName);
@@ -86,6 +87,7 @@ public:
         auto oldView = stack.back();
         oldView->dispose();
         stack.pop_back();
+        FocusManager::get()->popScope();
     }
 
     void replace(std::shared_ptr<InternalDrawable> view) {
@@ -93,6 +95,7 @@ public:
             auto oldView = stack.back();
             oldView->dispose();
             stack.pop_back();
+            FocusManager::get()->popScope();
         }
         push(view);
     }

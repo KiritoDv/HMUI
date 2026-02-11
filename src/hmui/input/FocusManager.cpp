@@ -150,3 +150,30 @@ void FocusManager::setFocus(std::shared_ptr<FocusNode> node) {
         focusHistory.push_back(currentFocus);
     }
 }
+
+void FocusManager::pushScope() {
+    // Save current state to the stack
+    FocusScope scope;
+    scope.nodes = nodes;
+    scope.currentFocus = currentFocus;
+    scope.focusHistory = focusHistory;
+    
+    scopeStack.push_back(scope);
+
+    // Clear current state for the new view
+    nodes.clear();
+    currentFocus = nullptr;
+    focusHistory.clear();
+}
+
+void FocusManager::popScope() {
+    if (scopeStack.empty()) return;
+
+    // Restore state from the stack
+    FocusScope scope = scopeStack.back();
+    scopeStack.pop_back();
+
+    nodes = scope.nodes;
+    currentFocus = scope.currentFocus;
+    focusHistory = scope.focusHistory;
+}

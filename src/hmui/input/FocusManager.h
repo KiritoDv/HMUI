@@ -16,6 +16,12 @@ struct FocusNode {
     FocusCallback onSubmit;
 };
 
+struct FocusScope {
+    std::vector<std::shared_ptr<FocusNode>> nodes;
+    std::shared_ptr<FocusNode> currentFocus;
+    std::vector<std::weak_ptr<FocusNode>> focusHistory;
+};
+
 enum class FocusDirection { Up, Down, Left, Right };
 
 class FocusManager {
@@ -41,12 +47,16 @@ public:
     void moveFocus(FocusDirection dir);
     void submit();
 
+    void pushScope();
+    void popScope();
+
     // Check if a specific node is focused (for visual styling)
     bool isFocused(const std::shared_ptr<FocusNode>& node);
 
 private:
     std::vector<std::shared_ptr<FocusNode>> nodes;
     std::shared_ptr<FocusNode> currentFocus;
+    std::vector<FocusScope> scopeStack;
 
     std::vector<std::weak_ptr<FocusNode>> focusHistory; 
 
