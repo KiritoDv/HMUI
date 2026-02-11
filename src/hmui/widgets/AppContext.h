@@ -8,6 +8,7 @@
 #include <optional>
 #include <string>
 #include "InternalDrawable.h"
+#include "hmui/input/FocusManager.h"
 
 // Factory for creating routes
 using RouteBuilder = std::function<std::shared_ptr<InternalDrawable>()>;
@@ -65,12 +66,11 @@ public:
     void push(std::shared_ptr<InternalDrawable> view) {
         if (!view) return;
 
+        FocusManager::get()->clear();
         view->init();
         view->setParent(shared_from_this());
-        
         // Note: We DO NOT set bounds here. 
         // The next frame's layout pass will handle sizing.
-        
         stack.push_back(view);
     }
     
@@ -84,11 +84,11 @@ public:
 
     void pop() {
         if (stack.size() <= 1) return; // Don't pop the last view
-        
+
+        FocusManager::get()->clear();
         auto oldView = stack.back();
         oldView->dispose();
         stack.pop_back();
-        
         // The new top view is already initialized, 
         // and will be re-layouted on the next frame.
     }

@@ -65,3 +65,15 @@ void RayOSContext::showCursor(bool show) {
         HideCursor();
     }
 }
+
+bool RayOSContext::isGamepadAvailable(int id) { 
+    return IsGamepadAvailable(id);
+}
+
+bool RayOSContext::isGamepadButtonPressed(int id, ControllerButton button) {
+    return IsGamepadButtonPressed(id, static_cast<int>(button));
+
+}
+float RayOSContext::getGamepadAxis(int id, ControllerAxis axis) {
+    return GetGamepadAxisMovement(id, static_cast<int>(axis));
+}

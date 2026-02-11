@@ -5,6 +5,7 @@
 
 #include "widgets/InternalDrawable.h"
 #include "graphics/GraphicsContext.h"
+#include "input/FocusManager.h"
 
 HMUI* HMUI::Instance = nullptr;
 
@@ -59,11 +60,42 @@ void HMUI::draw(GfxList* out, int width, int height) {
 }
 
 void HMUI::update(float delta){
-    if(this->drawable == nullptr) {
-        return;
-    }
+    // ... existing update logic ...
 
-    this->drawable->onUpdate(delta);
+    // --- Controller Input Handling ---
+    auto os = this->osContext;
+    static float inputTimer = 0.0f;
+    inputTimer -= delta;
+
+    if (inputTimer <= 0.0f && os->isGamepadAvailable(0)) {
+        // D-Pad or Stick Thresholds
+        float x = os->getGamepadAxis(0, ControllerAxis::LEFT_X);
+        float y = os->getGamepadAxis(0, ControllerAxis::LEFT_Y);
+        
+        bool moved = false;
+        
+        if (y < -0.5f || os->isGamepadButtonPressed(0, ControllerButton::LEFT_FACE_UP)) {
+            FocusManager::get()->moveFocus(FocusDirection::Up);
+            moved = true;
+        } else if (y > 0.5f || os->isGamepadButtonPressed(0, ControllerButton::LEFT_FACE_DOWN)) {
+            FocusManager::get()->moveFocus(FocusDirection::Down);
+            moved = true;
+        } else if (x < -0.5f || os->isGamepadButtonPressed(0, ControllerButton::LEFT_FACE_LEFT)) {
+            FocusManager::get()->moveFocus(FocusDirection::Left);
+            moved = true;
+        } else if (x > 0.5f || os->isGamepadButtonPressed(0, ControllerButton::LEFT_FACE_RIGHT)) {
+            FocusManager::get()->moveFocus(FocusDirection::Right);
+            moved = true;
+        }
+
+        if (moved) inputTimer = 0.2f; // simple debounce
+
+        // Handle Submit (A Button)
+        if (os->isGamepadButtonPressed(0, ControllerButton::RIGHT_FACE_DOWN)) {
+            FocusManager::get()->submit();
+            inputTimer = 0.2f;
+        }
+    }
 }
 
 void HMUI::close(){

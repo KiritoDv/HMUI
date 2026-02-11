@@ -1,6 +1,7 @@
 #pragma once
 
 #include "hmui/widgets/InternalDrawable.h"
+#include "hmui/input/FocusManager.h"
 #include <memory>
 #include <functional>
 #include <utility>
@@ -14,6 +15,8 @@ struct GestureDetectorProperties {
     GestureCallback onHover = nullptr;
     GestureCallback onHoverEnd = nullptr;
     std::shared_ptr<InternalDrawable> child = nullptr;
+    bool focusable = false;
+    std::string debugId = "widget";
 };
 
 class D_GestureDetector : public InternalDrawable {
@@ -22,9 +25,32 @@ public:
         : properties(std::move(properties)) {}
 
     void init() override {
+        InternalDrawable::init();
+
         if (properties.child) {
             properties.child->init();
             properties.child->setParent(shared_from_this());
+        }
+
+        if (properties.focusable) {
+            focusNode = std::make_shared<FocusNode>();
+            focusNode->id = properties.debugId;
+            focusNode->widget = shared_from_this();
+
+            // Define behaviors
+            focusNode->onFocus = [this]() {
+                if (properties.onHover) properties.onHover(properties.child, 0, 0);
+            };
+
+            focusNode->onBlur = [this]() {
+                if (properties.onHoverEnd) properties.onHoverEnd(properties.child, 0, 0);
+            };
+
+            focusNode->onSubmit = [this]() {
+                if (properties.onTap) properties.onTap(properties.child, 0, 0);
+            };
+
+            FocusManager::get()->registerNode(focusNode);
         }
     }
 
@@ -45,11 +71,14 @@ public:
     }
 
     void onDraw(GraphicsContext* ctx, float x, float y) override {
-        // Capture absolute screen coordinates for hit testing
         absoluteRect = Rect(x, y, bounds.width, bounds.height);
 
         if (properties.child) {
             properties.child->onDraw(ctx, x, y);
+        }
+
+        if (properties.focusable && focusNode && FocusManager::get()->isFocused(focusNode)) {
+            ctx->drawRect(absoluteRect, Color2D(0.0f, 0.0f, 0.0f, 1.0f));
         }
     }
 
@@ -113,7 +142,7 @@ protected:
     GestureDetectorProperties properties;
     Rect bounds;         // Local size
     Rect absoluteRect;   // Global position for hit testing
-    
+    std::shared_ptr<FocusNode> focusNode;
     bool isHovered = false;
     bool isPressed = false;
 };

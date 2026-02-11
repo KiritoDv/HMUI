@@ -8,7 +8,16 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 set(CMAKE_EXPORT_COMPILE_COMMANDS ON)
 
+set(PROJECT_VERSION_MAJOR 0)
+set(PROJECT_VERSION_MINOR 1)
+set(PROJECT_VERSION_PATCH 0)
+set(PROJECT_TEAM "HMUI Team")
+
 option(LOCAL_DEPS "Enable to retrieve deps from remote repositories using fetch" OFF)
+
+# add_compile_definitions(
+#     DEBUG_COMPONENTS=1
+# )
 
 include_directories("src")
 include_directories("lib")
@@ -17,11 +26,25 @@ file(GLOB_RECURSE SOURCES src/*.cpp)
 if(NOT ${LOCAL_DEPS})
 ## raylib ##
 
+if(CMAKE_SYSTEM_NAME STREQUAL "NintendoSwitch")
+add_compile_definitions(
+    __SWITCH__=1
+)
+set(CMAKE_REQUIRED_DEFINITIONS -D_POSIX_C_SOURCE=199309L)
+set(PLATFORM NX)
+set(BUILD_EXAMPLES OFF)
+FetchContent_Declare(
+    raylib
+    GIT_REPOSITORY https://github.com/luizpestana/raylib-nx.git
+    GIT_TAG 750046861fbd5264384b3276a9add9914a6eaa27
+)
+else()
 FetchContent_Declare(
     raylib
     GIT_REPOSITORY https://github.com/raysan5/raylib.git
     GIT_TAG ae50bfa2cc569c0f8d5bc4315d39db64005b1b08
 )
+endif()
 FetchContent_MakeAvailable(raylib)
 
 include_directories(${raylib_SOURCE_DIR}/include)
@@ -85,3 +108,19 @@ endif()
 
 add_executable(${PROJECT_NAME} ${SOURCES})
 target_link_libraries(${PROJECT_NAME} raylib)
+
+if(CMAKE_SYSTEM_NAME MATCHES "NintendoSwitch")
+nx_generate_nacp(${PROJECT_NAME}.nacp
+   NAME "${PROJECT_NAME}"
+   AUTHOR "${PROJECT_TEAM}"
+   VERSION "${PROJECT_VERSION_MAJOR}.${PROJECT_VERSION_MINOR}.${PROJECT_VERSION_PATCH}"
+)
+
+nx_create_nro(${PROJECT_NAME}
+    NACP ${PROJECT_NAME}.nacp
+    ICON ${CMAKE_CURRENT_SOURCE_DIR}/nx-logo.jpg
+    ROMFS ${CMAKE_CURRENT_SOURCE_DIR}/assets
+)
+
+INSTALL(FILES ${CMAKE_CURRENT_BINARY_DIR}/${PROJECT_NAME}.nro DESTINATION . COMPONENT ${PROJECT_NAME})
+endif()

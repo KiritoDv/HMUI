@@ -56,7 +56,7 @@ public:
                 .child = Stack(
                     .children = {
                         Image(
-                            .provider = TextureProvider("test.png"),
+                            .provider = TextureProvider("assets/test.png"),
                             .fit = BoxFit::Contain
                         ),
                         Text(
@@ -78,10 +78,11 @@ public:
             .child = Container(
                 .width = 200.0f,
                 .height = 300.0f,
-                .padding = EdgeInsets::all(15.0f),
+                .padding = EdgeInsets::all(5.0f),
                 .clipToBounds = true,
                 .color = Color2D(1.0f, 0.0f, 0.0f, 0.3f),
                 .child = GestureDetector(
+                    .focusable = true,
                     .onTap = [](std::shared_ptr<InternalDrawable> child, float x, float y) {
                         Navigator::push("/alternate");
                     },
@@ -106,13 +107,28 @@ public:
     void init() override {
         for(int i = 0; i < 30; ++i) {
             entries.push_back(Container(
+                .width = 0,
+                .height = 100.0f,
                 .color = Color2D(
                     rand() % 256 / 255.0f,
                     rand() % 256 / 255.0f,
                     rand() % 256 / 255.0f
                 ),
-                .width = 100.0f,
-                .height = 200.0f
+                .child = Stack(
+                    .children = {
+                        Image(
+                            .provider = TextureProvider("assets/test2.png"),
+                            .fit = BoxFit::Contain
+                        ),
+                        Text(
+                            .text = "World Hello",
+                            .scale = 2.0f,
+                            .alignH = HorizontalAlign::Center,
+                            .alignV = VerticalAlign::Center,
+                            .color = Color2D(1.0f, 1.0f, 1.0f, 1.0f)
+                        )
+                    }
+                )
             ));
         }
         Drawable::init();
@@ -120,17 +136,22 @@ public:
 
     std::shared_ptr<InternalDrawable> build() override {
         return Container(
-            .color = Color2D(0.0f, 1.0f, 0.0f, 0.5f),
             .child = Container(
                 .width = 200.0f,
                 .height = 300.0f,
                 .padding = EdgeInsets::all(5.0f),
                 .clipToBounds = true,
-                .color = Color2D(0.0f, 0.0f, 0.0f, 0.3f),
-                .child = Scrollable(
-                    .direction = Direction::Vertical,
-                    .child = Column(
-                        .children = entries
+                .color = Color2D(1.0f, 0.0f, 0.0f, 0.3f),
+                .child = GestureDetector(
+                    .focusable = true,
+                    .onTap = [](std::shared_ptr<InternalDrawable> child, float x, float y) {
+                        Navigator::pop();
+                    },
+                    .child = Scrollable(
+                        .direction = Direction::Vertical,
+                        .child = Column(
+                            .children = entries
+                        )
                     )
                 )
             )
