@@ -6,6 +6,7 @@
 #include "widgets/InternalDrawable.h"
 #include "graphics/GraphicsContext.h"
 #include "input/FocusManager.h"
+#include "Navigator.h"
 
 HMUI* HMUI::Instance = nullptr;
 
@@ -59,7 +60,7 @@ void HMUI::draw(GfxList* out, int width, int height) {
     this->drawable->onDraw(context.get(), 0, 0);
 }
 
-void HMUI::update(float delta){
+void HMUI::update(float delta) {
     if(this->drawable == nullptr) {
         return;
     }
@@ -79,6 +80,24 @@ void HMUI::update(float delta){
     inputTimer -= delta;
 
     if (inputTimer <= 0.0f && os->isGamepadAvailable(0)) {
+
+        if (os->isGamepadButtonPressed(0, ControllerButton::RIGHT_FACE_LEFT)) { // B button
+            // Go back to previous menu
+            Navigator::pop();
+        }
+
+#define SDL_SCANCODE_BACKSPACE 42
+#define VK_BACK 8
+#ifdef _WIN32
+        if (os->IsKeyboardButtonPressed(VK_BACK) || os->isMouseButtonPressed(2)) { // right click
+#else
+        if (os->IsKeyboardButtonPressed(SDL_SCANCODE_BACKSPACE) || os->isMouseButtonPressed(2)) {
+#endif
+            // Go back to previous menu
+            Navigator::pop();
+        }
+
+        
         // D-Pad or Stick Thresholds
         float x = os->getGamepadAxis(0, ControllerAxis::LEFT_X);
         float y = os->getGamepadAxis(0, ControllerAxis::LEFT_Y);
