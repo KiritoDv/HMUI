@@ -69,5 +69,6 @@ public:
     virtual void showCursor(bool show) = 0;
     virtual bool isGamepadAvailable(int id) = 0;
     virtual bool isGamepadButtonPressed(int id, ControllerButton button) = 0;
+    virtual bool IsKeyboardButtonPressed(int virtualKey) = 0;
     virtual float getGamepadAxis(int id, ControllerAxis axis) = 0;
 };
