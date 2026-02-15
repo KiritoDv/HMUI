@@ -71,7 +71,6 @@ public:
 
 protected:
     PositionedProperties properties;
-    Rect bounds;
 };
 
 // ==========================================
