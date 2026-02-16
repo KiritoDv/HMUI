@@ -19,25 +19,22 @@ void HMUI::initialize(std::shared_ptr<GraphicsContext> ctx, std::shared_ptr<OSCo
     this->context->init();
     this->osContext = std::move(osCtx);
     this->osContext->init();
+
+    // Call setVisibility(false) if UI should be disabled by default
+    this->active = true;
 }
 
-void HMUI::show(const std::shared_ptr<InternalDrawable>& _drawable) {
-    if (_drawable) {
-        this->drawable = _drawable;
-
-        if(drawable == nullptr) {
-            throw std::runtime_error("InternalDrawable cannot be null");
-        }
-
-        // Init resources (textures, etc.)
-        drawable->init();
-    } else {
-        throw std::invalid_argument("View cannot be null");
+void HMUI::setRouter(const std::shared_ptr<InternalDrawable>& _drawable) {
+    if (nullptr == _drawable) {
+        throw std::invalid_argument("Router/root view cannot be null");
     }
+
+    this->drawable = _drawable;
+    this->drawable->init(); // Init resources (textures, etc.)
 }
 
 void HMUI::draw(GfxList* out, int width, int height) {
-    if(this->drawable == nullptr) {
+    if(!this->active || (nullptr == this->drawable)) {
         return;
     }
 
@@ -61,7 +58,7 @@ void HMUI::draw(GfxList* out, int width, int height) {
 }
 
 void HMUI::update(float delta) {
-    if(this->drawable == nullptr) {
+    if(!this->active || (nullptr == this->drawable)) {
         return;
     }
 
