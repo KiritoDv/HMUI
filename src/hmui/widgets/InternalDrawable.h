@@ -103,6 +103,8 @@ public:
 
     virtual void init() {}
 
+    virtual bool onBack(int controllerId) { return false; }
+
     virtual void dispose() {}
 
     virtual void layout(BoxConstraints constraints) {
