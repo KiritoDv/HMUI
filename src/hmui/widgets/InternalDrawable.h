@@ -102,6 +102,8 @@ public:
 
     virtual void init() {}
 
+    virtual bool onBack(int controllerId) { return false; }
+
     virtual void dispose() {}
 
     virtual void layout(BoxConstraints constraints) {
@@ -112,6 +114,10 @@ public:
     virtual void onDraw(GraphicsContext* ctx, float x, float y) {}
 
     virtual void onUpdate(float delta) {}
+
+    virtual void onBack(int controllerId) {
+        Navigator::pop();
+    }
 
     virtual Rect getBounds() const {
         return bounds;

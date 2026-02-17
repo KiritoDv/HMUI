@@ -63,6 +63,15 @@ public:
         return std::nullopt;
     }
 
+    std::shared_ptr<InternalDrawable> getView() {
+        if (stack.empty()) {
+            printf("Failed to get view\n");
+            return nullptr;
+        } else {
+            return stack.back();
+        }
+    }
+
     void push(std::shared_ptr<InternalDrawable> view) {
         if (!view) return;
 

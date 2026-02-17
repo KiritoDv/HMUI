@@ -8,7 +8,8 @@
 
 // Callback signature: Child, MouseX, MouseY
 typedef std::function<void(std::shared_ptr<InternalDrawable>, float, float)> GestureCallback;
-typedef std::function<void(std::shared_ptr<InternalDrawable>, ControllerButton)> ControllerGestureCallback;
+typedef std::function<void(std::shared_ptr<InternalDrawable>, int controllerId, uint16_t)> ControllerButtonCallback;
+typedef std::function<void(std::shared_ptr<InternalDrawable>, int controllerId, ControllerButton)> ControllerGestureCallback;
 
 struct FocusDecorator {
     Color2D color = Color2D(0.0f, 0.0f, 0.0f, 1.0f);
@@ -22,6 +23,7 @@ struct GestureDetectorProperties {
     GestureCallback onTapRelease = nullptr;
     GestureCallback onHover = nullptr;
     GestureCallback onHoverEnd = nullptr;
+    ControllerButtonCallback onButton = nullptr;
     ControllerGestureCallback onControllerPress = nullptr;
     ControllerGestureCallback onControllerRelease = nullptr;
 
@@ -135,14 +137,23 @@ public:
         }
 
         // 3. Controller Press Logic (if focused)
-        if (focusNode && FocusManager::get()->isFocused(focusNode) && os->isGamepadAvailable(0)) {
-            if (properties.onControllerPress) {
-                for (int btn = static_cast<int>(ControllerButton::LEFT_FACE_UP); 
-                     btn <= static_cast<int>(ControllerButton::RIGHT_FACE_LEFT); 
-                     ++btn) {
-                    if (os->isGamepadButtonPressed(0, static_cast<ControllerButton>(btn))) {
-                        properties.onControllerPress(properties.child, static_cast<ControllerButton>(btn));
+        for (size_t i = 0; i < 4; i++) {
+            if (focusNode && FocusManager::get()->isFocused(focusNode) && os->isGamepadAvailable(i)) {
+                if (properties.onControllerPress) {
+                    for (int btn = static_cast<int>(ControllerButton::LEFT_FACE_UP); 
+                        btn <= static_cast<int>(ControllerButton::RIGHT_FACE_LEFT); 
+                        ++btn) {
+                        if (os->isGamepadButtonPressed(i, static_cast<ControllerButton>(btn))) {
+                            properties.onControllerPress(properties.child, i, static_cast<ControllerButton>(btn));
+                        }
                     }
+                }
+            }
+
+            if (os->isGamepadAvailable(i)) {
+                if (properties.onButton) {
+                    uint16_t buttons = os->getButtons(i);
+                    properties.onButton(properties.child, i, buttons);
                 }
             }
         }

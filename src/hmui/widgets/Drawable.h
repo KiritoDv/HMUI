@@ -1,6 +1,7 @@
 #pragma once
 
 #include "hmui/widgets/InternalDrawable.h"
+#include "hmui/Navigator.h"
 #include <stdexcept>
 #include <memory>
 
@@ -19,6 +20,30 @@ public:
              throw std::runtime_error("build() returned nullptr");
         }
         self->init();
+    }
+
+    /**
+     * This is some of the weirdest jank I have ever programmed.
+     * 
+     * onBack should work by default. However,
+     * some pages may need to override the behaviour to allow
+     * unselecting an option.
+     * 
+     * @return true - if the derived class has custom behaviour
+     *         false - if the derived class is using default behaviour
+     * 
+     * Base class behaviour for InternalDrawable returns false
+     * Placing the default behaviour here
+     */
+    virtual bool onBack(int controllerId) override {
+        if (nullptr == self) {
+            throw std::runtime_error("Drawable has not been initialized, forgot to call super.init()?");
+        }
+        
+        bool impl = self->onBack(controllerId);
+        if (!impl) { // Default onBack behaviour
+            Navigator::pop();
+        }
     }
 
     void layout(BoxConstraints constraints) override {

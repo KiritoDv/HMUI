@@ -15,6 +15,7 @@ public:
     void initialize(std::shared_ptr<GraphicsContext> ctx, std::shared_ptr<OSContext> osCtx);
     void setRouter(const std::shared_ptr<InternalDrawable>& drawable);
     void close();
+    void handleBack();
 
     void setActive(bool state);
     [[nodiscard]] bool isActive() const {
