@@ -6,8 +6,8 @@
 #include "widgets/AppContext.h"
 #include "widgets/InternalDrawable.h"
 #include "graphics/GraphicsContext.h"
-#include "Navigator.h"
 #include "input/FocusManager.h"
+#include "Navigator.h"
 
 HMUI* HMUI::Instance = nullptr;
 
