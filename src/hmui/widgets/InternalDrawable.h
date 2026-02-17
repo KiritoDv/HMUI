@@ -3,6 +3,7 @@
 #include <memory>
 #include <utility>
 #include "hmui/HMUI.h"
+#include "hmui/Navigator.h"
 #include "hmui/graphics/GraphicsContext.h"
 #include <algorithm>
 #include <cmath>
@@ -112,6 +113,10 @@ public:
     virtual void onDraw(GraphicsContext* ctx, float x, float y) {}
 
     virtual void onUpdate(float delta) {}
+
+    virtual void onBack(int controllerId) {
+        Navigator::pop();
+    }
 
     virtual Rect getBounds() const {
         return bounds;

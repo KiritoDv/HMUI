@@ -3,8 +3,9 @@
 #include <vector>
 #include <memory>
 
-#include "widgets/Drawable.h"
 #include "graphics/GraphicsContext.h"
+
+class InternalDrawable; // Forward declare
 
 class Navigator {
 public:

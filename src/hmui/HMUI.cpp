@@ -3,10 +3,11 @@
 #include <utility>
 #include <stdexcept>
 
+#include "widgets/AppContext.h"
 #include "widgets/InternalDrawable.h"
 #include "graphics/GraphicsContext.h"
-#include "input/FocusManager.h"
 #include "Navigator.h"
+#include "input/FocusManager.h"
 
 HMUI* HMUI::Instance = nullptr;
 
@@ -77,24 +78,6 @@ void HMUI::update(float delta) {
     inputTimer -= delta;
 
     if (inputTimer <= 0.0f && os->isGamepadAvailable(0)) {
-
-        if (os->isGamepadButtonPressed(0, ControllerButton::RIGHT_FACE_LEFT)) { // B button
-            // Go back to previous menu
-            Navigator::pop();
-        }
-
-#define SDL_SCANCODE_BACKSPACE 42
-#define VK_BACK 8
-#ifdef _WIN32
-        if (os->IsKeyboardButtonPressed(VK_BACK) || os->isMouseButtonPressed(2)) { // right click
-#else
-        if (os->IsKeyboardButtonPressed(SDL_SCANCODE_BACKSPACE) || os->isMouseButtonPressed(2)) {
-#endif
-            // Go back to previous menu
-            Navigator::pop();
-        }
-
-        
         // D-Pad or Stick Thresholds
         float x = os->getGamepadAxis(0, ControllerAxis::LEFT_X);
         float y = os->getGamepadAxis(0, ControllerAxis::LEFT_Y);
@@ -121,6 +104,27 @@ void HMUI::update(float delta) {
         if (os->isGamepadButtonPressed(0, ControllerButton::RIGHT_FACE_DOWN)) {
             FocusManager::get()->submit();
             inputTimer = 0.2f;
+        }
+
+        handleBack();
+    }
+}
+
+void HMUI::handleBack() {
+    auto os = HMUI::Instance->getOSContext();
+    auto current = D_AppContext::get();
+    if (!current) {
+        return;
+    }
+    auto page = current->getView();
+
+    for (size_t i = 0; i < 4; i++) {
+        if (os->isBackButtonPressed(i)) {
+            if (page) {
+                page->onBack(i);
+            } else {
+                Navigator::pop();
+            }
         }
     }
 }
