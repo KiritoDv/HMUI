@@ -8,7 +8,8 @@
 
 // Callback signature: Child, MouseX, MouseY
 typedef std::function<void(std::shared_ptr<InternalDrawable>, float, float)> GestureCallback;
-typedef std::function<void(std::shared_ptr<InternalDrawable>, ControllerButton)> ControllerGestureCallback;
+typedef std::function<void(std::shared_ptr<InternalDrawable>, int controllerId, uint16_t)> ControllerButtonCallback;
+typedef std::function<void(std::shared_ptr<InternalDrawable>, int controllerId, ControllerButton)> ControllerGestureCallback;
 
 struct FocusDecorator {
     Color2D color = Color2D(0.0f, 0.0f, 0.0f, 1.0f);
@@ -22,6 +23,7 @@ struct GestureDetectorProperties {
     GestureCallback onTapRelease = nullptr;
     GestureCallback onHover = nullptr;
     GestureCallback onHoverEnd = nullptr;
+    ControllerButtonCallback onButton = nullptr;
     ControllerGestureCallback onControllerPress = nullptr;
     ControllerGestureCallback onControllerRelease = nullptr;
 
