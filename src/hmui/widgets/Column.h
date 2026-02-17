@@ -9,6 +9,7 @@
 typedef std::vector<std::shared_ptr<InternalDrawable>> ChildrenList;
 
 struct ColumnProperties {
+    float spacing = 0.0f;
     MainAxisAlignment mainAxisAlignment = MainAxisAlignment::START;
     CrossAxisAlignment crossAxisAlignment = CrossAxisAlignment::START;
     ChildrenList children;
@@ -20,7 +21,7 @@ public:
         const ColumnProperties& properties
     ) : children(properties.children), 
         mainAxisAlignment(properties.mainAxisAlignment), 
-        crossAxisAlignment(properties.crossAxisAlignment) {};
+        crossAxisAlignment(properties.crossAxisAlignment), spacing(properties.spacing) {};
 
     void init() override {
         for (const auto& child : children) {
@@ -61,7 +62,7 @@ public:
 
         float freeSpace = bounds.height - totalChildrenHeight;
         float yOffset = 0.0f;
-        float spaceBetween = 0.0f;
+        float spaceBetween = spacing;
 
         if (freeSpace > 0 && !children.empty()) {
             switch(mainAxisAlignment) {
@@ -76,11 +77,11 @@ public:
                     break;
                 case MainAxisAlignment::SPACE_BETWEEN: 
                     if (children.size() > 1) {
-                        spaceBetween = freeSpace / (children.size() - 1);
+                        spaceBetween = spacing + freeSpace / (children.size() - 1);
                     }
                     break;
                 case MainAxisAlignment::SPACE_AROUND: 
-                    spaceBetween = freeSpace / children.size();
+                    spaceBetween = spacing + freeSpace / children.size();
                     yOffset = spaceBetween / 2.0f;
                     break;
             }
@@ -138,6 +139,7 @@ public:
 
 protected:
     std::vector<std::shared_ptr<InternalDrawable>> children;
+    float spacing;
     MainAxisAlignment mainAxisAlignment;
     CrossAxisAlignment crossAxisAlignment;
     Rect bounds;
